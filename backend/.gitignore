@@ -25,4 +25,7 @@ dist-ssr
 
 .env
 
+# Demo wallets (private keys) written by scripts/seed-demo.js
+.demo-wallets.json
+
 /generated/prisma

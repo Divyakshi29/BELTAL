@@ -1,0 +1,25 @@
+{
+  "network": "sepolia",
+  "chainId": 11155111,
+  "deployedAt": "2026-09-21T20:50:47.325Z",
+  "deploymentBlock": 11753331,
+  "deployer": "0x334eEfB6fc223ABf74D5F00E635B63c544689E8f",
+  "contracts": {
+    "AuditLog": {
+      "address": "0xBc1a55d597845Af677ef65C41DE39591477B155E",
+      "etherscan": "https://sepolia.etherscan.io/address/0xBc1a55d597845Af677ef65C41DE39591477B155E"
+    },
+    "IdentityRegistry": {
+      "address": "0x4924C0891d7Bc38fC54EC8B71e641F97E0D4138C",
+      "etherscan": "https://sepolia.etherscan.io/address/0x4924C0891d7Bc38fC54EC8B71e641F97E0D4138C"
+    },
+    "AccessControl": {
+      "address": "0x1538D96577bae82394813Bc49e9a8D046B2d2a65",
+      "etherscan": "https://sepolia.etherscan.io/address/0x1538D96577bae82394813Bc49e9a8D046B2d2a65"
+    },
+    "AssetNFT": {
+      "address": "0xb8E64CEFBFb450F7432Ce5e9F46AC2DffA1d4232",
+      "etherscan": "https://sepolia.etherscan.io/address/0xb8E64CEFBFb450F7432Ce5e9F46AC2DffA1d4232"
+    }
+  }
+}

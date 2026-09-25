@@ -1,1 +1,1362 @@
 @import "tailwindcss";
+
+/* ─────────────────────────────────────────────────────────
+   Tailwind v4 theme — converted from code.html inline config
+   Mirrors the custom token set from DESIGN.md
+───────────────────────────────────────────────────────── */
+
+
+/* Motion belongs to interactive elements and route changes—not every DOM node.
+   This avoids expensive style recalculation for tables and large dashboards. */
+:where(button, a, input, select, textarea, [role="button"]) {
+  transition: color .18s ease, background-color .18s ease, border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+
+/* Shared route feedback for every protected workspace.  Only opacity and
+   transform are animated so navigation remains GPU-friendly.
+   Deliberately NOT `both`/`forwards`: the end keyframe's `translateY(0)` is
+   visually a no-op, but any transform value other than `none` — including
+   `translateY(0)` — makes the element a containing block for every
+   `position: fixed`/`absolute` descendant (CSS Transforms spec). With a
+   persistent fill-mode that block becomes permanent, so every full-screen
+   `fixed inset-0` modal rendered inside a page (anything not using
+   createPortal — the quarantine revoke/reinstate dialog, the PACS lockdown
+   dialog, the reject-transfer dialog, etc.) gets positioned/sized against
+   this div instead of the viewport. Plain `none` fill-mode reverts transform
+   to its unanimated default (`none`) the instant the .22s animation ends,
+   which is visually identical to `translateY(0)` here, so this drops the
+   side effect with no visible change to the transition itself. */
+.app-page-transition {
+  animation: app-page-enter .22s cubic-bezier(.2, .8, .2, 1);
+}
+
+.app-route-loader {
+  display: grid;
+  min-height: 100vh;
+  place-content: center;
+  gap: .85rem;
+  background: radial-gradient(circle at 50% 45%, #e9f5ff, #f7fbff 42%, #e4f0fa);
+  color: #385d7e;
+  text-align: center;
+  font-size: .875rem;
+  font-weight: 700;
+}
+
+.app-route-loader__mark {
+  width: 2.5rem;
+  height: 2.5rem;
+  margin: 0 auto;
+  border: 3px solid #b9dcef;
+  border-top-color: #1e5fa8;
+  border-radius: 999px;
+  animation: app-loader-spin .7s linear infinite;
+}
+
+.dark .app-route-loader { background: radial-gradient(circle at 50% 45%, #102946, #060d1a 62%); color: #c5ddef; }
+.dark .app-route-loader__mark { border-color: #28415e; border-top-color: #7ab0fe; }
+
+@keyframes app-page-enter { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes app-loader-spin { to { transform: rotate(360deg); } }
+
+/* Light mode base */
+:root {
+  --bg-primary: linear-gradient(135deg, #f0f4f8 0%, #ffffff 100%);
+  --bg-card: #ffffff;
+  --border: #e2e8f0;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+}
+
+/* Night mode */
+.dark {
+  --bg-primary: linear-gradient(135deg, #0a1628 0%, #0f1f3d 100%);
+  --bg-card: #111d33;
+  --border: #1e3a5f;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+}
+
+body {
+  background: var(--bg-primary);
+  min-height: 100vh;
+}
+@theme {
+  /* ── Colors ── */
+  --color-background: #f9f9ff;
+  --color-surface: #f9f9ff;
+  --color-surface-bright: #f9f9ff;
+  --color-surface-dim: #d1daef;
+  --color-surface-variant: #dae3f7;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f0f3ff;
+  --color-surface-container: #e7eeff;
+  --color-surface-container-high: #dfe8fd;
+  --color-surface-container-highest: #dae3f7;
+
+  --color-primary: #001631;
+  --color-primary-container: #0d2b4e;
+  --color-primary-fixed: #d5e3ff;
+  --color-primary-fixed-dim: #aec8f3;
+  --color-on-primary: #ffffff;
+  --color-on-primary-container: #7993bc;
+  --color-on-primary-fixed: #001c3b;
+  --color-on-primary-fixed-variant: #2e486c;
+  --color-inverse-primary: #aec8f3;
+
+  --color-secondary: #1e5fa8;
+  --color-secondary-container: #7ab0fe;
+  --color-secondary-fixed: #d5e3ff;
+  --color-secondary-fixed-dim: #a6c8ff;
+  --color-on-secondary: #ffffff;
+  --color-on-secondary-container: #00427e;
+  --color-on-secondary-fixed: #001c3b;
+  --color-on-secondary-fixed-variant: #004787;
+
+  --color-tertiary: #755b00;
+  --color-tertiary-container: #c8a74c;
+  --color-tertiary-fixed: #ffe08f;
+  --color-tertiary-fixed-dim: #e6c364;
+  --color-on-tertiary: #ffffff;
+  --color-on-tertiary-container: #4f3d00;
+  --color-on-tertiary-fixed: #241a00;
+  --color-on-tertiary-fixed-variant: #584400;
+
+  --color-error: #ba1a1a;
+  --color-error-container: #ffdad6;
+  --color-on-error: #ffffff;
+  --color-on-error-container: #93000a;
+
+  --color-on-background: #131c2a;
+  --color-on-surface: #131c2a;
+  --color-on-surface-variant: #43474e;
+  --color-inverse-surface: #283140;
+  --color-inverse-on-surface: #ecf1ff;
+
+  --color-outline: #74777f;
+  --color-outline-variant: #c4c6cf;
+  --color-surface-tint: #465f85;
+
+  /* ── Border radius ── */
+  --radius-DEFAULT: 0.125rem;
+  --radius-lg: 0.25rem;
+  --radius-xl: 0.5rem;
+  --radius-full: 0.75rem;
+
+  /* ── Spacing ── */
+  --spacing-margin-mobile: 1rem;
+  --spacing-gutter-sm: 1rem;
+  --spacing-gutter: 1.5rem;
+  --spacing-gutter-lg: 2rem;
+  --spacing-space-xs: 0.25rem;
+  --spacing-space-sm: 0.5rem;
+  --spacing-space-md: 1rem;
+  --spacing-space-lg: 1.5rem;
+  --spacing-space-xl: 2rem;
+  --spacing-margin: 2rem;
+  --spacing-margin-desktop: 3rem;
+
+  /* ── Font families — all overridden to Times New Roman ── */
+  --font-family-display-hero: "Times New Roman", Times, serif;
+  --font-family-display-hero-mobile: "Times New Roman", Times, serif;
+  --font-family-headline-lg: "Times New Roman", Times, serif;
+  --font-family-headline-lg-mobile: "Times New Roman", Times, serif;
+  --font-family-headline-md: "Times New Roman", Times, serif;
+  --font-family-headline-sm: "Times New Roman", Times, serif;
+  --font-family-title-md: "Times New Roman", Times, serif;
+  --font-family-body-lg: "Times New Roman", Times, serif;
+  --font-family-body-md: "Times New Roman", Times, serif;
+  --font-family-body-sm: "Times New Roman", Times, serif;
+  --font-family-label-md: "Times New Roman", Times, serif;
+  --font-family-label-sm: "Times New Roman", Times, serif;
+  --font-family-code-sm: "Times New Roman", Times, serif;
+  /* ── Font families — Inter throughout, matching the network-diagram
+     SVG text (which already hardcodes Inter/Public Sans) and the brand
+     wordmark; replaces a blanket Times New Roman override that fought
+     the modern "sovereign cybersecurity console" visual language. ── */
+  --font-family-display-hero:        "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-family-display-hero-mobile: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-family-headline-lg:         "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-family-headline-lg-mobile:  "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-family-headline-md:         "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-family-headline-sm:         "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-family-title-md:            "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-family-body-lg:             "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-family-body-md:             "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-family-body-sm:             "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-family-label-md:            "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-family-label-sm:            "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-family-code-sm:             "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  /* ── Font sizes (with line-height & weight) ── */
+  --font-size-display-hero: 48px;
+  --font-size-display-hero-mobile: 32px;
+  --font-size-headline-lg: 36px;
+  --font-size-headline-lg-mobile: 26px;
+  --font-size-headline-md: 26px;
+  --font-size-headline-sm: 20px;
+  --font-size-title-md: 16px;
+  --font-size-body-lg: 16px;
+  --font-size-body-md: 14px;
+  --font-size-body-sm: 12px;
+  --font-size-label-md: 13px;
+  --font-size-label-sm: 11px;
+  --font-size-code-sm: 12px;
+}
+
+/* ─────────────────────────────────────────────────────────
+   Base resets (mirrors code.html <style> block)
+───────────────────────────────────────────────────────── */
+@layer base {
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    overscroll-behavior: none;
+    font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+  }
+
+  main> :first-child {
+    margin-top: 0 !important;
+  }
+
+  main> :last-child {
+    margin-bottom: 0 !important;
+  }
+
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+  .material-symbols-outlined {
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────
+   Utility aliases — map code.html class names to CSS
+   (Tailwind v4 won't auto-generate these from @theme alone
+    for font-* shorthands, so we add them as utilities)
+───────────────────────────────────────────────────────── */
+@layer utilities {
+
+  /* Font family utilities */
+  .font-display-hero {
+    font-family: var(--font-family-display-hero);
+  }
+
+  .font-display-hero-mobile {
+    font-family: var(--font-family-display-hero-mobile);
+  }
+
+  .font-headline-lg {
+    font-family: var(--font-family-headline-lg);
+  }
+
+  .font-headline-lg-mobile {
+    font-family: var(--font-family-headline-lg-mobile);
+  }
+
+  .font-headline-md {
+    font-family: var(--font-family-headline-md);
+  }
+
+  .font-headline-sm {
+    font-family: var(--font-family-headline-sm);
+  }
+
+  .font-title-md {
+    font-family: var(--font-family-title-md);
+  }
+
+  .font-body-lg {
+    font-family: var(--font-family-body-lg);
+  }
+
+  .font-body-md {
+    font-family: var(--font-family-body-md);
+  }
+
+  .font-body-sm {
+    font-family: var(--font-family-body-sm);
+  }
+
+  .font-label-md {
+    font-family: var(--font-family-label-md);
+  }
+
+  .font-label-sm {
+    font-family: var(--font-family-label-sm);
+  }
+
+  .font-code-sm {
+    font-family: var(--font-family-code-sm);
+  }
+
+  /* Font size + line-height + weight utilities */
+  .text-display-hero {
+    font-size: 48px;
+    line-height: 56px;
+    font-weight: 800;
+  }
+
+  .text-display-hero-mobile {
+    font-size: 32px;
+    line-height: 40px;
+    font-weight: 800;
+  }
+
+  .text-headline-lg {
+    font-size: 36px;
+    line-height: 44px;
+    font-weight: 700;
+  }
+
+  .text-headline-lg-mobile {
+    font-size: 26px;
+    line-height: 34px;
+    font-weight: 700;
+  }
+
+  .text-headline-md {
+    font-size: 26px;
+    line-height: 32px;
+    font-weight: 700;
+  }
+
+  .text-headline-sm {
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 600;
+  }
+
+  .text-title-md {
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 600;
+  }
+
+  .text-body-lg {
+    font-size: 16px;
+    line-height: 26px;
+    font-weight: 400;
+  }
+
+  .text-body-md {
+    font-size: 14px;
+    line-height: 22px;
+    font-weight: 400;
+  }
+
+  .text-body-sm {
+    font-size: 12px;
+    line-height: 18px;
+    font-weight: 400;
+  }
+
+  .text-label-md {
+    font-size: 13px;
+    line-height: 18px;
+    font-weight: 600;
+  }
+
+  .text-label-sm {
+    font-size: 11px;
+    line-height: 16px;
+    font-weight: 700;
+  }
+
+  .text-code-sm {
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 500;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────
+   Force Times New Roman globally — beats Tailwind v4 preflight
+   and all utility-layer font-family overrides.
+   Excludes material-symbols-outlined so icons still render.
+───────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  font-family: "Times New Roman", Times, serif !important;
+}
+
+html,
+body {
+  font-family: "Times New Roman", Times, serif !important;
+}
+
+.material-symbols-outlined {
+  font-family: "Material Symbols Outlined" !important;
+}
+
+/* Light-blue dashboard with a restrained sovereign-gold accent palette. */
+.dashboard-theme.light-theme {
+  color: #163b5c !important;
+  background: #eaf7ff !important;
+}
+
+.dashboard-theme.light-theme main {
+  background: linear-gradient(135deg, #effaff 0%, #dff2ff 58%, #fff8d9 140%) !important;
+}
+
+.dashboard-theme.light-theme aside,
+.dashboard-theme.light-theme header {
+  background: #e8f5ff !important;
+  border-color: #b9dcef !important;
+}
+
+.dashboard-theme.light-theme aside *:not(.material-symbols-outlined),
+.dashboard-theme.light-theme header *:not(.material-symbols-outlined) {
+  color: #173c5d;
+}
+
+.dashboard-theme.light-theme .dashboard-card {
+  background: #fbfeff !important;
+  border-color: #b6d8ee !important;
+  box-shadow: 0 8px 22px rgba(61, 126, 170, 0.12) !important;
+}
+
+.dashboard-theme.light-theme .dashboard-card h3,
+.dashboard-theme.light-theme .dashboard-card p {
+  color: #173c5d !important;
+}
+
+.dashboard-theme.light-theme .dashboard-card p.text-\[32px\] {
+  color: #114f7d !important;
+}
+
+.dashboard-theme.light-theme main h1,
+.dashboard-theme.light-theme main h2 {
+  color: #123b5d !important;
+}
+
+.dashboard-theme.light-theme main>div>div>p,
+.dashboard-theme.light-theme .dashboard-ledger p {
+  color: #52718a !important;
+}
+
+.dashboard-theme.light-theme .dashboard-ledger input,
+.dashboard-theme.light-theme .dashboard-ledger select {
+  background: #ffffff !important;
+  border-color: #b6d8ee !important;
+  color: #173c5d !important;
+}
+
+.dashboard-theme.light-theme .dashboard-table {
+  background: #ffffff !important;
+  border-color: #b6d8ee !important;
+}
+
+.dashboard-theme.light-theme .dashboard-table thead tr {
+  background: #d9efff !important;
+  border-color: #b6d8ee !important;
+}
+
+.dashboard-theme.light-theme .dashboard-table th {
+  color: #175887 !important;
+}
+
+.dashboard-theme.light-theme .dashboard-table tbody tr,
+.dashboard-theme.light-theme .dashboard-table tbody tr:nth-child(even) {
+  background: #fafdff !important;
+  border-color: #d2e7f5 !important;
+}
+
+.dashboard-theme.light-theme .dashboard-table td,
+.dashboard-theme.light-theme .dashboard-table tbody {
+  color: #244b6b !important;
+}
+
+/* Stronger contrast for gold labels and green status text on the light theme. */
+.dashboard-theme.light-theme .text-\[\#D4AF37\],
+.dashboard-theme.light-theme .text-\[\#D4AF37\]\/60,
+.dashboard-theme.light-theme .text-\[\#D4AF37\]\/80,
+.dashboard-theme.light-theme .text-amber-300 {
+  color: #8a6500 !important;
+}
+
+.dashboard-theme.light-theme .text-emerald-300,
+.dashboard-theme.light-theme .text-emerald-400,
+.dashboard-theme.light-theme .text-emerald-400\/80 {
+  color: #126747 !important;
+}
+
+/* Responsive Utilities */
+@layer utilities {
+  .container-responsive {
+    @apply w-full mx-auto;
+    @apply px-4 sm:px-6 lg:px-8;
+  }
+
+  .grid-responsive {
+    @apply grid gap-4;
+    @apply grid-cols-1 sm:grid-cols-2 lg:grid-cols-3;
+  }
+
+  .card-responsive {
+    @apply p-4 sm:p-6;
+  }
+
+  .text-responsive {
+    @apply text-sm sm:text-base;
+  }
+
+  .button-responsive {
+    @apply w-full sm:w-auto;
+    @apply px-4 py-2 sm:px-6 sm:py-3;
+  }
+}
+
+/* Mobile-first breakpoints */
+@layer components {
+  .page-container {
+    @apply min-h-screen bg-[#060D1A];
+    @apply p-2 sm:p-4 md:p-6 lg:p-8;
+  }
+
+  .sidebar-mobile {
+    @apply fixed inset-y-0 left-0 z-50;
+    @apply transform -translate-x-full transition-transform duration-300;
+    @apply md:relative md:translate-x-0;
+  }
+
+  .sidebar-mobile.open {
+    @apply translate-x-0;
+  }
+}
+
+/* ========================================
+   RESPONSIVE UTILITIES - Issue #69
+   ======================================== */
+
+/* Mobile-first breakpoints */
+@layer utilities {
+
+  /* Container spacing */
+  .container-responsive {
+    @apply w-full mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Grid layouts */
+  .grid-responsive {
+    @apply grid gap-4;
+    @apply grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
+  }
+
+  /* Card spacing */
+  .card-responsive {
+    @apply p-4 sm:p-6 lg:p-8;
+  }
+
+  /* Button sizing */
+  .btn-responsive {
+    @apply w-full sm:w-auto px-4 py-2 sm:px-6 sm:py-3;
+    @apply text-sm sm:text-base;
+  }
+
+  /* Text sizing */
+  .text-responsive {
+    @apply text-sm sm:text-base lg:text-lg;
+  }
+
+  /* Heading sizing */
+  .heading-responsive {
+    @apply text-xl sm:text-2xl lg:text-3xl;
+  }
+
+  /* Table responsive wrapper */
+  .table-responsive {
+    @apply overflow-x-auto;
+    @apply -mx-4 sm:mx-0;
+    @apply px-4 sm:px-0;
+  }
+
+  /* Form spacing */
+  .form-responsive {
+    @apply space-y-4 sm:space-y-6;
+  }
+
+  /* Input fields */
+  .input-responsive {
+    @apply w-full px-3 py-2 sm:px-4 sm:py-2.5;
+    @apply text-sm sm:text-base;
+  }
+
+  /* Modal/Dialog sizing */
+  .modal-responsive {
+    @apply w-full sm:w-11/12 md:w-3/4 lg:w-2/3 xl:w-1/2;
+    @apply max-h-[90vh] overflow-y-auto;
+  }
+
+  /* Sidebar mobile */
+  .sidebar-mobile {
+    @apply fixed inset-y-0 left-0 z-50 w-64;
+    @apply transform -translate-x-full transition-transform duration-300 ease-in-out;
+    @apply md:relative md:translate-x-0;
+  }
+
+  .sidebar-mobile.open {
+    @apply translate-x-0;
+  }
+
+  /* Overlay for mobile sidebar */
+  .sidebar-overlay {
+    @apply fixed inset-0 bg-black/50 z-40;
+    @apply md:hidden;
+  }
+
+  /* Hide on mobile */
+  .hide-mobile {
+    @apply hidden sm:block;
+  }
+
+  /* Show only on mobile */
+  .show-mobile {
+    @apply block sm:hidden;
+  }
+
+  /* Stack on mobile, row on desktop */
+  .flex-responsive {
+    @apply flex flex-col sm:flex-row;
+  }
+
+  /* Gap responsive */
+  .gap-responsive {
+    @apply gap-3 sm:gap-4 lg:gap-6;
+  }
+}
+
+/* Animation utilities */
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  .animate-slide-down {
+    animation: slideDown 0.3s ease-out;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Dark theme (default) */
+:root {
+  --bg-primary: #060D1A;
+  --bg-secondary: #0D1F38;
+  --bg-tertiary: #1F293D;
+  --text-primary: #FFFFFF;
+  --text-secondary: #94A3B8;
+  --accent-primary: #1E5FA8;
+  --accent-secondary: #D4AF37;
+  --border-color: #1F293D;
+}
+
+/* Dark theme classes */
+.bg-dark-primary {
+  background-color: var(--bg-primary);
+}
+
+.bg-dark-secondary {
+  background-color: var(--bg-secondary);
+}
+
+.text-dark-primary {
+  color: var(--text-primary);
+}
+
+.text-dark-secondary {
+  color: var(--text-secondary);
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+/* ─────────────────────────────────────────────────────────
+   Respect the visitor's reduced-motion preference — shortens
+   the decorative pulse/ping/hover-transition animations instead
+   of removing them outright.
+───────────────────────────────────────────────────────── */
+}
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+/* Fix small text globally for dashboards */
+.dashboard-theme.light-theme body,
+body:not(.dashboard-theme) {
+  font-size: 14px;
+}
+
+/* Force readable sizes */
+.text-\[9px\] { font-size: 10px !important; }
+.text-\[10px\] { font-size: 11px !important; }
+.text-\[11px\] { font-size: 12px !important; }
+.text-\[12px\] { font-size: 13px !important; }
+.text-\[13px\] { font-size: 14px !important; }
+
+/* Fix: readable font sizes globally */
+body {
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+}
+
+/* Override tiny text utilities */
+.text-\[9px\] { font-size: 11px !important; }
+.text-\[10px\] { font-size: 12px !important; }
+.text-\[11px\] { font-size: 12px !important; }
+
+/* Prevent text overflow */
+* {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Tables: no truncation without tooltip */
+table td, table th {
+  max-width: 300px;
+}
+body {
+  background: #FDFBF7;
+  color: #0A1F3D;
+}
+
+/* Shared light glass surface for every authenticated user route. */
+.user-console {
+  background:
+    radial-gradient(circle at 88% 2%, rgba(122, 176, 254, 0.30), transparent 27rem),
+    linear-gradient(135deg, #e8f1fb 0%, #f7fbff 54%, #eaf6ff 100%);
+  color: #0d2b4e;
+}
+
+.user-console .bg-\[\#0B1726\]\/90,
+.user-console .bg-\[\#060D1A\],
+.user-console .bg-\[\#0D1F38\] {
+  background: rgba(255, 255, 255, 0.62) !important;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.user-console .border-\[\#1E2E48\],
+.user-console .border-\[\#1F293D\] {
+  border-color: rgba(112, 164, 211, 0.34) !important;
+}
+
+.user-console .text-white,
+.user-console .text-slate-300 {
+  color: #0d2b4e !important;
+}
+
+.user-console .text-slate-400 { color: #466983 !important; }
+.user-console .text-slate-500 { color: #385d7a !important; }
+.user-console .text-slate-600,
+.user-console .text-gray-600 { color: #31536f !important; }
+.user-console .text-slate-700,
+.user-console .text-gray-700 { color: #1d405f !important; }
+.user-console .text-slate-800,
+.user-console .text-gray-800 { color: #0d2b4e !important; }
+
+.user-console input,
+.user-console select,
+.user-console textarea {
+  background: rgba(255, 255, 255, 0.70) !important;
+  border-color: rgba(89, 145, 196, 0.36) !important;
+  color: #0d2b4e !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.72);
+}
+
+.user-console input::placeholder,
+.user-console textarea::placeholder { color: #6d86a1 !important; }
+.user-console option { background: #f7fbff; color: #0d2b4e; }
+.user-console .bg-\[\#1E3E62\] { background: #e2f0ff !important; }
+.user-console .text-\[\#7ab0fe\] { color: #1e5fa8 !important; }
+.user-console .border-t.border-\[\#1F293D\] { border-color: rgba(112, 164, 211, 0.28) !important; }
+
+/* Complete the console in dark mode: content surfaces change with the shell. */
+.dark .user-console {
+  background: radial-gradient(circle at 92% 0%, rgba(30,95,168,.22), transparent 30rem), #060d1a;
+  color: #eef6ff;
+}
+.dark .user-console .bg-\[\#0B1726\]\/90,
+.dark .user-console .bg-\[\#060D1A\],
+.dark .user-console .bg-\[\#0D1F38\] { background: rgba(13,31,56,.90) !important; }
+.dark .user-console .text-white,
+.dark .user-console .text-slate-300 { color: #eef6ff !important; }
+.dark .user-console .text-slate-400 { color: #b8cce5 !important; }
+.dark .user-console .text-slate-500 { color: #a9bfde !important; }
+.dark .user-console .text-slate-600,
+.dark .user-console .text-gray-600 { color: #94b0cf !important; }
+.dark .user-console .text-slate-700,
+.dark .user-console .text-gray-700 { color: #c5d9ee !important; }
+.dark .user-console .text-slate-800,
+.dark .user-console .text-gray-800 { color: #eaf3ff !important; }
+.dark .user-console input,
+.dark .user-console select,
+.dark .user-console textarea { background: #0b1b31 !important; border-color: #28415e !important; color: #eef6ff !important; }
+.dark .user-console option { background: #0b1b31; color: #eef6ff; }
+.dark .user-console button:disabled {
+  color: #6f8da9 !important;
+  background: #1b3654 !important;
+  border-color: #355675 !important;
+}
+.user-console input:focus,
+.user-console select:focus,
+.user-console textarea:focus {
+  border-color: #3b82c4 !important;
+  box-shadow: 0 0 0 3px rgba(59,130,196,.14) !important;
+}
+.user-console form > div:last-child button:not(:disabled) { transform: translateY(0); }
+.user-console form > div:last-child button:not(:disabled):hover { transform: translateY(-1px); }
+
+.dark .dashboard-console { background: #060d1a !important; color: #eef6ff; }
+.dark .dashboard-console > section { background: #060d1a !important; }
+.dark .dashboard-console .bg-\[\#FFFDF8\] { background: #0d1f38 !important; }
+.dark .dashboard-console .border-\[\#D7E0EA\] { border-color: #28415e !important; }
+.dark .dashboard-console .text-\[\#0D2B4E\] { color: #eef6ff !important; }
+.dark .dashboard-console .text-\[\#52657B\],
+.dark .dashboard-console .text-\[\#65758A\] { color: #a9bfde !important; }
+.dark .dashboard-console .dashboard-primary-action { color: #0d2b4e !important; }
+
+/* Shared government-ledger treatment for admin, manager, and auditor workspaces. */
+.role-console {
+  background: radial-gradient(circle at 92% 0%, rgba(173, 215, 250, .62), transparent 29rem), linear-gradient(135deg, #edf6ff, #f7fbff 58%, #eaf4fc);
+  color: #0d2b4e;
+}
+.role-console .bg-\[\#0B1726\]\/90,
+.role-console .bg-\[\#060D1A\],
+.role-console .bg-\[\#0D1F38\] { background: rgba(255,255,255,.72) !important; backdrop-filter: blur(16px); }
+.role-console .border-\[\#1E2E48\],
+.role-console .border-\[\#1F293D\] { border-color: rgba(112,164,211,.34) !important; }
+.role-console .text-white,
+.role-console .text-slate-300 { color: #0d2b4e !important; }
+.role-console .text-slate-400 { color: #466983 !important; }
+.role-console .text-slate-500 { color: #385d7a !important; }
+
+/* The bright dark-mode gold (#D4AF37) fails contrast on this light ledger
+   surface — same guardrail already applied to .dashboard-theme.light-theme,
+   extended here since these pages use the .role-console/.user-console shell
+   instead. */
+.role-console .text-\[\#D4AF37\],
+.role-console .text-\[\#D4AF37\]\/60,
+.role-console .text-\[\#D4AF37\]\/80,
+.user-console .text-\[\#D4AF37\],
+.user-console .text-\[\#D4AF37\]\/60,
+.user-console .text-\[\#D4AF37\]\/80 { color: #8a6500 !important; }
+
+/* Contrast guardrails for every admin, auditor and manager page in day mode.
+   Utility names remain expressive while these values guarantee readable ink on
+   the shared light ledger surfaces. */
+.role-console .text-slate-600,
+.role-console .text-gray-600 { color: #31536f !important; }
+.role-console .text-slate-700,
+.role-console .text-gray-700 { color: #1d405f !important; }
+.role-console .text-slate-800,
+.role-console .text-gray-800 { color: #0d2b4e !important; }
+
+/* Primary actions stay legible: the light-console text palette must never
+   replace white copy inside an intentionally dark or blue button. */
+.role-console .app-button[data-variant="primary"],
+.role-console button.bg-\[\#1E5FA8\],
+.role-console button.bg-\[\#0D2B4E\],
+.role-console button.bg-blue-600,
+.role-console button.bg-blue-500,
+.user-console .app-button[data-variant="primary"],
+.user-console button.bg-\[\#1E5FA8\],
+.user-console button.bg-\[\#0D2B4E\],
+.user-console button.bg-blue-600,
+.user-console button.bg-blue-500 { color: #ffffff !important; }
+.role-console .app-button[data-variant="primary"] *,
+.role-console button.bg-\[\#1E5FA8\] .text-white,
+.role-console button.bg-\[\#0D2B4E\] .text-white,
+.user-console .app-button[data-variant="primary"] *,
+.user-console button.bg-\[\#1E5FA8\] .text-white,
+.user-console button.bg-\[\#0D2B4E\] .text-white { color: #ffffff !important; }
+
+/* The identity ledger is a day-mode record surface, including its filters,
+   rows, loading state and pagination—not a leftover dark console table. */
+.role-console .dashboard-ledger .dashboard-table {
+  border-color: #b6d8ee !important;
+  background: #ffffff !important;
+  box-shadow: 0 8px 20px rgba(44,95,138,.08);
+}
+.role-console .dashboard-ledger .dashboard-table thead tr { background: #e8f4ff !important; border-color: #b6d8ee !important; }
+.role-console .dashboard-ledger .dashboard-table th { color: #175887 !important; }
+.role-console .dashboard-ledger .dashboard-table tbody tr { background: #ffffff !important; border-color: #d9e7f3 !important; }
+.role-console .dashboard-ledger .dashboard-table tbody tr:nth-child(even) { background: #f7fbff !important; }
+.role-console .dashboard-ledger .dashboard-table tbody tr:hover { background: #eaf5ff !important; }
+.role-console .dashboard-ledger .dashboard-table td { color: #173c5d !important; }
+.role-console .dashboard-ledger .identity-role-badge,
+.role-console .dashboard-ledger .identity-clearance-badge {
+  /* The original Tailwind amber/blue text is designed for dark surfaces and
+     does not meet contrast needs on this light ledger table. */
+  background: #e8f1f9 !important;
+  border-color: #8bbce2 !important;
+  color: #123f63 !important;
+}
+.role-console .dashboard-ledger .identity-role-badge { background: #fff3d6 !important; border-color: #d5a34a !important; color: #714900 !important; }
+.role-console .dashboard-ledger .identity-clearance-badge { background: #e5f1ff !important; border-color: #75aee0 !important; color: #124b7a !important; }
+.role-console .dashboard-ledger .dashboard-table .bg-\[\#1E2E48\] { background: #d9eaf7 !important; }
+.role-console .dashboard-ledger input,
+.role-console .dashboard-ledger select { background: #ffffff !important; border-color: #b6d8ee !important; color: #173c5d !important; }
+.role-console .dashboard-ledger input::placeholder { color: #587b99 !important; }
+.role-console .dashboard-ledger button.bg-\[\#0D2245\]\/60 { background: #eaf4ff !important; border-color: #8bbce2 !important; color: #175887 !important; }
+.role-console .dashboard-ledger button.bg-\[\#0D2245\]\/60:hover { background: #d8ecff !important; color: #0d2b4e !important; }
+.role-console .dashboard-ledger button.bg-\[\#0D1F38\] { background: #e8f4ff !important; border-color: #b6d8ee !important; color: #175887 !important; }
+.role-console input,
+.role-console select,
+.role-console textarea { background: rgba(255,255,255,.78) !important; border-color: #b9dcef !important; color: #0d2b4e !important; }
+.role-console input::placeholder,
+.role-console textarea::placeholder { color: #6d86a1 !important; }
+.role-console option { background: #f7fbff; color: #0d2b4e; }
+.role-console table thead { background: #e8f4ff !important; }
+.role-console table tbody tr { border-color: #d9e7f3 !important; }
+.role-console table tbody tr:hover { background: rgba(232,244,255,.72) !important; }
+.role-console .bg-emerald-950\/30 { background: #ecfdf5 !important; border-color: #a7f3d0 !important; }
+.role-console .text-emerald-400\/80 { color: #047857 !important; }
+
+/* Admin command header mirrors the user portal's calm, authoritative focal panel. */
+.role-console > .mb-7 {
+  margin-bottom: 2rem;
+  padding: 2rem;
+  border: 1px solid #315c89;
+  border-radius: .75rem;
+  background: linear-gradient(135deg, #0a2748 0%, #123d67 62%, #17577e 100%);
+  box-shadow: 0 14px 32px rgba(13,43,78,.18);
+}
+.role-console > .mb-7 .text-white { color: #fff !important; font-size: clamp(1.8rem, 3vw, 2.25rem) !important; letter-spacing: -.025em; }
+.role-console > .mb-7 .text-slate-500 { color: #d7e9fb !important; font-size: 1rem !important; max-width: 40rem; }
+.role-console > .mb-7 .bg-emerald-950\/30 { background: rgba(255,255,255,.12) !important; border-color: rgba(255,255,255,.22) !important; }
+.role-console > .mb-7 .text-emerald-400\/80 { color: #a7f3d0 !important; }
+
+.dark .role-console { background: radial-gradient(circle at 92% 0%, rgba(30,95,168,.22), transparent 30rem), #060d1a; color: #eef6ff; }
+.dark .role-console .bg-\[\#0B1726\]\/90,
+.dark .role-console .bg-\[\#060D1A\],
+.dark .role-console .bg-\[\#0D1F38\] { background: rgba(13,31,56,.92) !important; }
+.dark .role-console .border-\[\#1E2E48\],
+.dark .role-console .border-\[\#1F293D\] { border-color: #28415e !important; }
+.dark .role-console .text-white,
+.dark .role-console .text-slate-300 { color: #eef6ff !important; }
+.dark .role-console .text-slate-400 { color: #b8cce5 !important; }
+.dark .role-console .text-slate-500 { color: #a9bfde !important; }
+.dark .role-console .text-slate-600,
+.dark .role-console .text-gray-600 { color: #94b0cf !important; }
+.dark .role-console .text-slate-700,
+.dark .role-console .text-gray-700 { color: #c5d9ee !important; }
+.dark .role-console .text-slate-800,
+.dark .role-console .text-gray-800 { color: #eaf3ff !important; }
+
+/* Dark mode is the native habitat for this gold, so undo the light-mode
+   contrast fix above. */
+.dark .role-console .text-\[\#D4AF37\],
+.dark .role-console .text-\[\#D4AF37\]\/60,
+.dark .role-console .text-\[\#D4AF37\]\/80,
+.dark .user-console .text-\[\#D4AF37\],
+.dark .user-console .text-\[\#D4AF37\]\/60,
+.dark .user-console .text-\[\#D4AF37\]\/80 { color: #D4AF37 !important; }
+
+/* Dark overlays can sit outside a console root, so give their utility text the
+   same light-on-dark guarantee as the authenticated night workspace. */
+.beltal-auth-modal .text-slate-300,
+.beltal-modal .text-slate-300 { color: #dceaff !important; }
+.beltal-auth-modal .text-slate-400,
+.beltal-modal .text-slate-400 { color: #b8cce5 !important; }
+.beltal-auth-modal .text-slate-500,
+.beltal-modal .text-slate-500 { color: #a9bfde !important; }
+.beltal-auth-modal .text-slate-600,
+.beltal-modal .text-slate-600 { color: #94b0cf !important; }
+.beltal-auth-modal .text-slate-700,
+.beltal-modal .text-slate-700 { color: #c5d9ee !important; }
+.dark .role-console input,
+.dark .role-console select,
+.dark .role-console textarea { background: #0b1b31 !important; border-color: #28415e !important; color: #eef6ff !important; }
+.dark .role-console option { background: #0b1b31; color: #eef6ff; }
+.dark .role-console table thead { background: #102946 !important; }
+.dark .role-console table tbody tr { border-color: #28415e !important; }
+.dark .role-console table tbody tr:hover { background: rgba(30,95,168,.12) !important; }
+.dark .role-console .bg-emerald-950\/30 { background: rgba(6,78,59,.30) !important; border-color: rgba(16,185,129,.25) !important; }
+.dark .role-console .text-emerald-400\/80 { color: #6ee7b7 !important; }
+.dark .role-console > .mb-7 .bg-emerald-950\/30 { background: rgba(255,255,255,.12) !important; border-color: rgba(255,255,255,.22) !important; }
+.dark .role-console > .mb-7 .text-emerald-400\/80 { color: #a7f3d0 !important; }
+
+.dark body {
+  background: #060D1A;
+  color: #f1f5f9;
+}
+
+/* Audit explorer: a clear reading surface with the same sovereign-ledger language as the user portal. */
+.audit-explorer {
+  max-width: 100%;
+}
+
+.auditor-welcome {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 310px);
+  gap: 2rem;
+  align-items: center;
+  overflow: hidden;
+  padding: 2rem;
+  border: 1px solid #315c89;
+  border-radius: 1rem;
+  background:
+    radial-gradient(circle at 86% 14%, rgba(123, 190, 240, .26), transparent 15rem),
+    linear-gradient(135deg, #0a2748 0%, #123d67 62%, #17577e 100%);
+  box-shadow: 0 14px 32px rgba(13,43,78,.18);
+}
+
+.auditor-welcome::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+  opacity: .08;
+  pointer-events: none;
+  background-image: linear-gradient(to right, #fff 1px, transparent 1px), linear-gradient(to bottom, #fff 1px, transparent 1px);
+  background-size: 25px 25px;
+}
+
+.auditor-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  padding: .45rem .7rem;
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: .45rem;
+  background: rgba(255,255,255,.09);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .12em;
+}
+
+.auditor-welcome h1 {
+  margin: .25rem 0 0;
+  color: #fff;
+  font-size: clamp(1.8rem, 3vw, 2.3rem);
+  font-weight: 800;
+  letter-spacing: -.025em;
+  line-height: 1.15;
+}
+.auditor-welcome h1 span { color: #e8cc71; }
+.auditor-welcome-copy { max-width: 39rem; margin-top: 1rem; color: #d7e9fb; font-size: 1rem; line-height: 1.65; }
+.role-console .auditor-welcome .text-white { color: #fff !important; }
+.role-console .auditor-welcome .text-emerald-400 { color: #6ee7b7 !important; }
+
+.auditor-status-card {
+  padding: 1rem;
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: .8rem;
+  background: rgba(5, 27, 53, .22);
+  box-shadow: 0 12px 30px rgba(0,18,49,.18);
+  backdrop-filter: blur(12px);
+}
+
+.audit-surface {
+  border-color: #b6d8ee !important;
+  background: rgba(255,255,255,.88) !important;
+  box-shadow: 0 10px 25px rgba(44,95,138,.11) !important;
+}
+.audit-surface > div:first-child { background: linear-gradient(90deg, #fbfdff, #f2f9ff); }
+.audit-surface label { color: #385d7e !important; }
+.audit-surface input, .audit-surface select { min-height: 44px; border-radius: .55rem !important; }
+.audit-surface input:focus, .audit-surface select:focus { border-color: #1e5fa8 !important; box-shadow: 0 0 0 3px rgba(30,95,168,.13) !important; }
+.role-console .audit-clear-button {
+  background: #0d2b4e !important;
+  color: #ffffff !important;
+  border: 1px solid #0d2b4e !important;
+}
+.role-console .audit-clear-button:hover { background: #1e5fa8 !important; border-color: #1e5fa8 !important; }
+.role-console .audit-clear-button:focus-visible {
+  outline: 3px solid rgba(30, 95, 168, .35);
+  outline-offset: 2px;
+}
+
+/* Explicit alert tokens avoid low-contrast Tailwind red utilities on the light audit surface. */
+.audit-error-state {
+  border-color: #dc2626 !important;
+  background: #fff1f2 !important;
+}
+.audit-error-icon { color: #dc2626 !important; }
+.audit-error-title { color: #991b1b !important; }
+.audit-error-message { color: #b91c1c !important; }
+.audit-error-retry { color: #991b1b !important; }
+.audit-error-retry:hover { color: #7f1d1d !important; }
+
+.audit-count {
+  flex: none;
+  border: 1px solid #b9dcef;
+  border-radius: 999px;
+  padding: .38rem .65rem;
+  background: #eaf5ff;
+  color: #175887;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .09em;
+}
+.audit-table thead { background: #e1f1ff !important; }
+.audit-table th { color: #175887 !important; font-weight: 800; letter-spacing: .07em; }
+.audit-table td { color: #244b6b; }
+.audit-table tbody tr { transition: background .18s ease; }
+.audit-table tbody tr:hover { background: #f0f8ff !important; }
+
+.dark .audit-surface { background: rgba(13,31,56,.92) !important; border-color: #28415e !important; }
+.dark .audit-surface > div:first-child { background: rgba(16,41,70,.7); }
+.dark .audit-surface label { color: #b5cbe3 !important; }
+.dark .role-console .audit-clear-button { background: #1e5fa8 !important; border-color: #3b82c4 !important; color: #fff !important; }
+.dark .audit-error-state { border-color: #f87171 !important; background: rgba(127, 29, 29, .28) !important; }
+.dark .audit-error-icon { color: #fca5a5 !important; }
+.dark .audit-error-title { color: #fecaca !important; }
+.dark .audit-error-message { color: #fda4af !important; }
+.dark .audit-error-retry { color: #fecaca !important; }
+.dark .audit-error-retry:hover { color: #fff !important; }
+.dark .audit-count { border-color: #355675; background: #102946; color: #a9d5ff; }
+.dark .audit-table thead { background: #102946 !important; }
+.dark .audit-table th { color: #e8cc71 !important; }
+.dark .audit-table td { color: #d9e7f5; }
+.dark .audit-table tbody tr:hover { background: rgba(30,95,168,.14) !important; }
+
+/* Manager command center: a distinct companion to the auditor welcome panel. */
+.manager-welcome { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 310px); gap: 2rem; align-items: center; overflow: hidden; padding: 2rem; border: 1px solid #315c89; border-radius: 1rem; background: radial-gradient(circle at 87% 13%, rgba(94,190,198,.24), transparent 16rem), linear-gradient(135deg, #092943, #12536a 60%, #16727a); box-shadow: 0 14px 32px rgba(13,43,78,.18); }
+.manager-welcome::after { position: absolute; inset: 0; content: ''; opacity: .08; pointer-events: none; background-image: linear-gradient(to right, #fff 1px, transparent 1px), linear-gradient(to bottom, #fff 1px, transparent 1px); background-size: 25px 25px; }
+.manager-eyebrow { display: inline-flex; align-items: center; gap: .55rem; padding: .45rem .7rem; border: 1px solid rgba(255,255,255,.25); border-radius: .45rem; background: rgba(255,255,255,.09); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .12em; }
+.manager-welcome h1 { margin: .25rem 0 0; color: #fff; font-size: clamp(1.8rem, 3vw, 2.3rem); font-weight: 800; letter-spacing: -.025em; line-height: 1.15; }.manager-welcome h1 span { color: #e8cc71; }.manager-welcome-copy { max-width: 39rem; margin-top: 1rem; color: #d7f0f3; font-size: 1rem; line-height: 1.65; }.manager-status-card { padding: 1rem; border: 1px solid rgba(255,255,255,.2); border-radius: .8rem; background: rgba(5,37,53,.28); box-shadow: 0 12px 30px rgba(0,18,49,.18); backdrop-filter: blur(12px); }
+/* The role-console light palette must not dim status information on the dark welcome panel. */
+.role-console .manager-status-card .text-white { color: #ffffff !important; }
+.role-console .manager-status-card .text-\[\#C5DDF7\] { color: #d7f0f3 !important; }
+.role-console .manager-status-card .text-\[\#A9BFDE\] { color: #c5ddef !important; }
+.role-console .manager-status-card p.text-white { color: #ffffff !important; }
+.role-console .manager-status-card .border-white\/15 { border-color: rgba(255,255,255,.22) !important; }
+.manager-stat-card, .manager-panel { border-color: #b6d8ee !important; background: rgba(255,255,255,.88) !important; box-shadow: 0 10px 25px rgba(44,95,138,.11) !important; }.manager-stat-card { transition: transform .18s ease, box-shadow .18s ease; }.manager-stat-card:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(44,95,138,.17) !important; }.manager-stat-card > div:first-child, .manager-panel > div:first-child { background: linear-gradient(90deg, #fbfdff, #f2f9ff); }
+.manager-stat-icon { display: grid; width: 2.25rem; height: 2.25rem; place-items: center; border-radius: .65rem; font-size: 1.2rem; }.manager-stat-icon--team { color: #126a8d; background: #e0f3fc; }.manager-stat-icon--assets { color: #2563a8; background: #e8f0ff; }.manager-stat-icon--pending { color: #a56300; background: #fff4d8; }.manager-stat-value { color: #0d2b4e; font-size: 2rem; font-weight: 800; line-height: 1; }.manager-stat-card--attention .manager-stat-value { color: #a56300; }.manager-stat-copy, .manager-panel-subtitle { margin-top: .35rem; color: #58718b; font-size: .78rem; }
+.manager-action-card { display: flex; align-items: center; gap: .7rem; width: 100%; min-height: 78px; padding: .8rem; border: 1px solid #cfe3f2; border-radius: .75rem; background: #f9fcff; color: #17466d; text-align: left; transition: all .18s ease; }.manager-action-card:hover { border-color: #4f8bc1; background: #edf7ff; transform: translateY(-2px); box-shadow: 0 8px 18px rgba(44,95,138,.12); }.manager-action-card > span:first-child { color: #1e5fa8; }.manager-action-card span:nth-child(2) { display: grid; gap: .14rem; flex: 1; }.manager-action-card strong { font-size: .79rem; }.manager-action-card small, .manager-readiness-row small { color: #58718b; font-size: .7rem; }.manager-action-card i { color: #4f8bc1; font-size: 1rem; font-style: normal; }
+.manager-readiness-card .px-5.py-4 { display: grid; gap: .9rem; }.manager-readiness-row { display: flex; align-items: flex-start; gap: .65rem; }.manager-readiness-row > span { color: #16806b; }.manager-readiness-row div { display: grid; gap: .12rem; }.manager-readiness-row strong { color: #17466d; font-size: .8rem; }
+.dark .manager-stat-card, .dark .manager-panel { background: rgba(13,31,56,.92) !important; border-color: #28415e !important; }.dark .manager-stat-card > div:first-child, .dark .manager-panel > div:first-child { background: rgba(16,41,70,.7); }.dark .manager-stat-value, .dark .manager-readiness-row strong { color: #eef6ff; }.dark .manager-stat-copy, .dark .manager-panel-subtitle, .dark .manager-action-card small, .dark .manager-readiness-row small { color: #a9bfde; }.dark .manager-action-card { border-color: #28415e; background: #0b1b31; color: #e5f1ff; }.dark .manager-action-card:hover { border-color: #3b82c4; background: #102946; }.dark .manager-stat-icon--team { color: #7dd3fc; background: #103b54; }.dark .manager-stat-icon--assets { color: #a9d5ff; background: #152f55; }.dark .manager-stat-icon--pending { color: #f6cd71; background: #49360d; }
+
+@media (max-width: 700px) {
+  .auditor-welcome { grid-template-columns: 1fr; padding: 1.5rem; gap: 1.25rem; }
+  .auditor-welcome-copy { font-size: .94rem; }
+  .manager-welcome { grid-template-columns: 1fr; padding: 1.5rem; gap: 1.25rem; }
+  .manager-welcome-copy { font-size: .94rem; }
+}
+
+/* Authentication is part of the public light experience. Keep this surface
+   independent of legacy console palette utilities and user preferences. */
+.auth-modal-light {
+  background: linear-gradient(145deg, #ffffff 0%, #f4f9fe 100%) !important;
+  border: 1px solid #a9cfe9 !important;
+  box-shadow: 0 24px 60px rgba(13, 43, 78, .28) !important;
+  color: #123653;
+  max-width: min(56rem, calc(100vw - 2rem)) !important;
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+}
+.auth-modal-light .bg-\[\#060D1A\],
+.auth-modal-light .bg-\[\#0A1628\],
+.auth-modal-light .bg-\[\#0B1E36\],
+.auth-modal-light .bg-\[\#0D1F38\]\/60 { background: #edf6ff !important; }
+.auth-modal-light .border-\[\#1E2E48\],
+.auth-modal-light .border-\[\#1E3E62\],
+.auth-modal-light .border-\[\#1E2E48\]\/60,
+.auth-modal-light .border-\[\#1E3E62\]\/60 { border-color: #b7d8ed !important; }
+.auth-modal-light .text-slate-100,
+.auth-modal-light .text-slate-200 { color: #0d2b4e !important; }
+.auth-modal-light .text-slate-400 { color: #466983 !important; }
+.auth-modal-light .text-slate-500 { color: #385d7a !important; }
+.auth-modal-light .text-slate-600,
+.auth-modal-light .text-slate-700 { color: #58718b !important; }
+.auth-modal-light .bg-amber-950\/30 { background: #fff7df !important; }
+.auth-modal-light .border-amber-800\/40 { border-color: #e0b55a !important; }
+.auth-modal-light .text-amber-300,
+.auth-modal-light .text-amber-400 { color: #875d04 !important; }
+.auth-modal-light .bg-red-950\/30 { background: #fff1f2 !important; }
+.auth-modal-light .border-red-800\/40 { border-color: #f0a4ad !important; }
+.auth-modal-light .text-red-300,
+.auth-modal-light .text-red-400 { color: #b4233a !important; }
+.auth-modal-light .bg-emerald-900\/30 { background: #e9faf2 !important; }
+.auth-modal-light .border-emerald-600\/40,
+.auth-modal-light .border-emerald-800\/40 { border-color: #83cfaa !important; }
+.auth-modal-light .text-emerald-400 { color: #047857 !important; }
+
+/* A grid gives every stage a fixed, equal label area. It prevents the long
+   labels from competing with the connector lines at every viewport width. */
+.auth-step-indicator {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: .4rem;
+  width: 100%;
+  margin: 0 0 1.1rem;
+}
+.auth-idle-content {
+  display: grid;
+  grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+  column-gap: 1.25rem;
+  row-gap: .7rem;
+}
+.auth-idle-content .auth-step-indicator,
+.auth-idle-content > button,
+.auth-idle-content > p { grid-column: 1 / -1; }
+.auth-idle-content fieldset,
+.auth-idle-content > .bg-\[\#060D1A\] { margin: 0 !important; }
+.auth-idle-content > button { margin-top: .25rem; }
+.auth-idle-content > p { margin-top: -.45rem; }
+.auth-step { display: grid; min-width: 0; justify-items: center; text-align: center; }
+.auth-step > .flex-1 { display: none; }
+.auth-step__label {
+  display: block;
+  min-width: 0;
+  margin-top: .3rem;
+  color: #58718b !important;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .035em;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.auth-step:has(.bg-\[\#1E5FA8\]) .auth-step__label { color: #175887 !important; }
+.auth-step:has(.border-\[\#C59B27\]) .auth-step__label { color: #875d04 !important; }
+.auth-modal-light .auth-step .bg-\[\#0A1628\] { background: #eef5fb !important; }
+.auth-modal-light .auth-step .border-\[\#1E2E48\] { border-color: #b7d8ed !important; }
+.auth-modal-light .auth-step .text-\[\#7ab0fe\] { color: #175887 !important; }
+.auth-modal-light .auth-step .text-\[\#C59B27\] { color: #875d04 !important; }
+@media (max-width: 420px) {
+  .auth-step-indicator { gap: .2rem; }
+  .auth-step__label { font-size: 9px; letter-spacing: 0; }
+}
+@media (max-width: 700px) {
+  .auth-modal-light { max-width: min(32rem, calc(100vw - 2rem)) !important; }
+  .auth-idle-content { display: block; }
+  .auth-idle-content fieldset,
+  .auth-idle-content > .bg-\[\#060D1A\],
+  .auth-idle-content > button { margin-bottom: 1.25rem !important; }
+  .auth-idle-content > p { margin-top: 0; }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Motion helpers shared by the admin consoles and dialogs.
+   Everything here is switched off for people who ask for reduced motion.
+   ───────────────────────────────────────────────────────────── */
+@keyframes ui-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ui-pop { from { opacity: 0; transform: translateY(8px) scale(.97); } to { opacity: 1; transform: none; } }
+@keyframes ui-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+.ui-fade-in { animation: ui-fade .18s ease-out both; }
+.ui-pop-in { animation: ui-pop .22s cubic-bezier(.2, .8, .2, 1) both; }
+.ui-stagger > * { animation: ui-rise .38s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--i, 0) * 45ms); }
+
+/* ─────────────────────────────────────────────────────────────
+   Public API reference (/docs)
+   ───────────────────────────────────────────────────────────── */
+@keyframes docs-drift { to { transform: translate3d(48px, -28px, 0) scale(1.18); } }
+@keyframes docs-grid-pan { to { background-position: 44px 44px; } }
+@keyframes docs-pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(232, 204, 113, .55); } 100% { box-shadow: 0 0 0 10px rgba(232, 204, 113, 0); } }
+@keyframes docs-sheen { from { transform: translateX(-120%); } to { transform: translateX(220%); } }
+
+.docs-hero { position: relative; isolation: isolate; overflow: hidden; }
+.docs-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, .06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, .06) 1px, transparent 1px);
+  background-size: 44px 44px;
+  -webkit-mask-image: radial-gradient(ellipse at 30% 40%, #000 20%, transparent 75%);
+  mask-image: radial-gradient(ellipse at 30% 40%, #000 20%, transparent 75%);
+  animation: docs-grid-pan 14s linear infinite;
+}
+.docs-blob { position: absolute; z-index: -1; border-radius: 9999px; filter: blur(64px); pointer-events: none; animation: docs-drift 16s ease-in-out infinite alternate; }
+.docs-hero-item { animation: ui-rise .7s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--i, 0) * 110ms + 60ms); }
+.docs-live-dot { animation: docs-pulse-ring 1.8s ease-out infinite; }
+
+.docs-reveal { opacity: 0; transform: translateY(20px); transition: opacity .6s ease, transform .6s cubic-bezier(.2, .8, .2, 1); transition-delay: var(--d, 0ms); }
+.docs-reveal.is-visible { opacity: 1; transform: none; }
+
+.docs-card { transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease; }
+.docs-card:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(11, 37, 69, .10); border-color: #B9D0EE; }
+
+.docs-endpoint { position: relative; transition: box-shadow .25s ease, border-color .25s ease; }
+.docs-endpoint:hover { box-shadow: 0 8px 22px rgba(11, 37, 69, .09); }
+.docs-endpoint[data-open='true'] { border-color: #B9D0EE; box-shadow: 0 10px 26px rgba(11, 37, 69, .10); }
+.docs-endpoint::before { content: ''; position: absolute; inset: 0 auto 0 0; width: 3px; background: var(--accent, #1565C0); transform: scaleY(.35); transform-origin: center; opacity: .55; transition: transform .3s ease, opacity .3s ease; }
+.docs-endpoint:hover::before, .docs-endpoint[data-open='true']::before { transform: scaleY(1); opacity: 1; }
+
+.docs-collapse { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .32s cubic-bezier(.3, .7, .2, 1); }
+.docs-collapse[data-open='true'] { grid-template-rows: 1fr; }
+.docs-collapse > div { min-height: 0; overflow: hidden; }
+.docs-chevron { transition: transform .3s cubic-bezier(.3, .7, .2, 1); }
+.docs-endpoint[data-open='true'] .docs-chevron { transform: rotate(180deg); }
+
+.docs-nav-link { position: relative; transition: background-color .2s ease, color .2s ease, transform .2s ease; }
+.docs-nav-link:hover { transform: translateX(2px); }
+.docs-nav-link[aria-current='true']::before { content: ''; position: absolute; left: -8px; top: 22%; bottom: 22%; width: 3px; border-radius: 3px; background: #D4AF37; animation: ui-fade .25s ease-out both; }
+
+.docs-progress { position: fixed; inset: 0 0 auto 0; z-index: 60; height: 3px; pointer-events: none; background: linear-gradient(90deg, #1565C0, #D4AF37); transform-origin: left; transform: scaleX(var(--p, 0)); }
+.docs-top { transition: opacity .25s ease, transform .25s ease; }
+.docs-top[data-show='false'] { opacity: 0; transform: translateY(12px); pointer-events: none; }
+
+.docs-code-sheen { position: relative; overflow: hidden; }
+.docs-code-sheen::after { content: ''; position: absolute; inset: 0 auto 0 0; width: 35%; background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .07), transparent); transform: translateX(-120%); pointer-events: none; }
+.docs-code-sheen:hover::after { animation: docs-sheen .9s ease; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-fade-in, .ui-pop-in, .ui-stagger > *, .docs-hero-item, .docs-blob, .docs-live-dot, .docs-hero::before, .docs-code-sheen:hover::after,
+  .docs-nav-link[aria-current='true']::before { animation: none !important; }
+  .docs-reveal { opacity: 1; transform: none; transition: none; }
+  .docs-card, .docs-endpoint, .docs-endpoint::before, .docs-collapse, .docs-chevron, .docs-nav-link, .docs-top { transition: none; }
+  .docs-card:hover, .docs-nav-link:hover { transform: none; }
+}

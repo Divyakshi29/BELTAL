@@ -32,7 +32,10 @@ enum AuditEventType {
   ROLE_ASSIGNED
   ASSET_MINTED
   TRANSFER_REQUESTED
+  TRANSFER_REJECTED
   OWNERSHIP_TRANSFERRED
+  PACS_ACCESS_GRANTED
+  PACS_ACCESS_DENIED
 }
 
 // BEL's named Strategic Business Units (Radar, Electronic Warfare, Military
@@ -50,6 +53,19 @@ enum PacsDecision {
   DENIED
 }
 
+enum RegistrationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum RecoveryStatus {
+  PENDING
+  APPROVED
+  COMPLETED
+  REJECTED
+}
+
 // One DID per person, tied to a wallet address. externalId is the only
 // integration surface with BEL's own systems (e.g. their SAP employee code) —
 // it's a plain optional join key, not a mirror of their schema.
@@ -58,6 +74,11 @@ model User {
   walletAddress  String   @unique
   externalId     String?  @unique
   displayName    String?
+  // The W3C-style decentralized identifier minted at registration and written
+  // to IdentityRegistry on-chain (did:beltal:<employee code>). Stored so the
+  // API can surface the same string the contract holds instead of re-deriving
+  // it. Nullable only for rows that predate this field.
+  did            String?  @unique
   role           Role     @default(USER)
   clearanceLevel Int
   sbu            Sbu
@@ -70,16 +91,48 @@ model User {
   // registration (issue #44). Nullable only for rows that predate this field;
   // registration always sets it going forward.
   dossierCid     String?
+  // Set when an admin revokes (quarantines) the identity. The chain is the
+  // source of truth (IdentityRegistry.isActive=false); these mirror it so the
+  // API can refuse a revoked person immediately instead of waiting for their
+  // JWT to expire. Guardian recovery does not use them: it moves the identity
+  // to a new wallet rather than retiring it.
+  revokedAt        DateTime?
+  revocationReason String?
+  revokeTxHash     String?
+  // Org-structure layer (issue: user/manager/team mapping), deliberately kept
+  // off-chain and separate from RBAC. Mirrors how BEL itself runs two
+  // independent dimensions: SBU membership (existing, on-chain, used for
+  // access scoping — unchanged by this) and a person-to-person reporting
+  // chain within/across SBUs (this). seniorityGrade is an approximate stand-in
+  // for BEL's E1-E9 executive grade ladder — an organizational rank, NOT the
+  // same thing as clearanceLevel (security classification access). Both are
+  // nullable so existing rows and every current creation flow (registration,
+  // bulk import, demo seed) keep working unchanged; an admin fills them in
+  // via PATCH /admin/identities/:id/manager once this is adopted.
+  seniorityGrade   Int?
+  managerId        String?
+  manager          User?     @relation("ReportsTo", fields: [managerId], references: [id], onDelete: SetNull)
+  directReports    User[]    @relation("ReportsTo")
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  assets               Asset[]           @relation("AssetOwner")
-  transferRequestsFrom TransferRequest[] @relation("TransferFrom")
-  transferRequestsTo   TransferRequest[] @relation("TransferTo")
-  requestedTransfers   TransferRequest[] @relation("TransferRequestedBy")
-  approvedTransfers    TransferRequest[] @relation("TransferApprovedBy")
-  auditEvents          AuditEvent[]      @relation("AuditActor")
-  pacsBadgeEvents      PacsBadgeEvent[]
+  assets                Asset[]               @relation("AssetOwner")
+  transferRequestsFrom  TransferRequest[]     @relation("TransferFrom")
+  transferRequestsTo    TransferRequest[]     @relation("TransferTo")
+  requestedTransfers    TransferRequest[]     @relation("TransferRequestedBy")
+  approvedTransfers     TransferRequest[]     @relation("TransferApprovedBy")
+  auditEvents           AuditEvent[]          @relation("AuditActor")
+  pacsBadgeEvents       PacsBadgeEvent[]
+  crossSbuPasses        CrossSbuPass[]        @relation("UserCrossSbuPasses")
+  issuedCrossSbuPasses  CrossSbuPass[]        @relation("IssuedCrossSbuPasses")
+  reviewedRegistrations RegistrationRequest[] @relation("RegistrationReviewedBy")
+  guardians             Guardian[]            @relation("ProtectedIdentity")
+  guardianFor           Guardian[]            @relation("ActsAsGuardian")
+  recoveryRequests      RecoveryRequest[]     @relation("RecoverySubject")
+  requestedRecoveries   RecoveryRequest[]     @relation("RecoveryRequestedBy")
+  recoveryApprovals     RecoveryApproval[]    @relation("RecoveryApprover")
+
+  @@index([managerId])
 }
 
 // Mirrors an on-chain NFT. `cid` is a cache of the IPFS CID recorded on-chain
@@ -141,6 +194,9 @@ model AuditEvent {
 
   @@index([type])
   @@index([targetId])
+  @@index([type, createdAt])
+  @@index([actorId])
+  @@index([txHash])
 }
 
 // Physical access control zone (e.g. "ZONE_ANECHOIC_CHAMBER"). sbu == null
@@ -175,4 +231,113 @@ model PacsBadgeEvent {
 
   @@index([zoneId])
   @@index([employeeId])
+}
+
+// Time-boxed cross-department access pass for custody transfers and zone access (Issue #46)
+model CrossSbuPass {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation("UserCrossSbuPasses", fields: [userId], references: [id])
+  targetSbu   Sbu
+  validUntil  DateTime
+  reason      String?
+  issuedById  String
+  issuedBy    User     @relation("IssuedCrossSbuPasses", fields: [issuedById], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId, targetSbu])
+}
+
+// Self-service onboarding request from a wallet that has no User row yet.
+// An ADMIN approves it (choosing role + clearance) through
+// identityService.registerIdentity, which is the only place a User is created.
+// One row per wallet: a rejected wallet re-submits by resetting its row to
+// PENDING. reviewedById stays null when a bootstrap admin (ADMIN_WALLETS) is
+// auto-approved.
+model RegistrationRequest {
+  id              String             @id @default(uuid())
+  walletAddress   String             @unique
+  fullName        String
+  externalId      String
+  requestedSbu    Sbu
+  note            String?
+  status          RegistrationStatus @default(PENDING)
+  reviewedById    String?
+  reviewedBy      User?              @relation("RegistrationReviewedBy", fields: [reviewedById], references: [id])
+  reviewedAt      DateTime?
+  rejectionReason String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@index([status])
+  @@index([externalId])
+}
+
+// Position of the on-chain event indexer (services/indexer.service.js): the
+// last block whose events are fully written to AuditEvent. Keyed by chain id
+// plus a hash of the watched contract addresses, so a redeployment gets a
+// fresh backfill instead of resuming a stale position.
+model IndexerCheckpoint {
+  id        String   @id
+  lastBlock BigInt
+  updatedAt DateTime @updatedAt
+}
+
+// Guardian-based account recovery (issue #51). A guardian is another
+// registered identity trusted to vouch that a colleague genuinely lost their
+// wallet. Assigned by an admin; a person cannot guard themselves.
+model Guardian {
+  id          String   @id @default(uuid())
+  // The identity being protected.
+  userId      String
+  user        User     @relation("ProtectedIdentity", fields: [userId], references: [id], onDelete: Cascade)
+  // The identity doing the vouching.
+  guardianId  String
+  guardian    User     @relation("ActsAsGuardian", fields: [guardianId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([userId, guardianId])
+  @@index([guardianId])
+}
+
+// One attempt to move an identity onto a new wallet. The DID and identity hash
+// are deliberately preserved across the move — recovery re-anchors the same
+// person to a new key, it does not mint a new identity.
+model RecoveryRequest {
+  id               String             @id @default(uuid())
+  userId           String
+  user             User               @relation("RecoverySubject", fields: [userId], references: [id], onDelete: Cascade)
+  newWalletAddress String
+  reason           String
+  status           RecoveryStatus     @default(PENDING)
+  requestedById    String
+  requestedBy      User               @relation("RecoveryRequestedBy", fields: [requestedById], references: [id])
+  // Set once the re-link executes: the chain revokes the old address and
+  // re-registers the same DID against the new one.
+  revokeTxHash     String?
+  relinkTxHash     String?
+  oldWalletAddress String?
+  completedAt      DateTime?
+  rejectionReason  String?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  approvals        RecoveryApproval[]
+
+  @@index([status])
+  @@index([userId])
+}
+
+// One guardian's vote on one recovery request. Unique per guardian so nobody
+// can approve twice to reach the threshold alone.
+model RecoveryApproval {
+  id                String          @id @default(uuid())
+  recoveryRequestId String
+  recoveryRequest   RecoveryRequest @relation(fields: [recoveryRequestId], references: [id], onDelete: Cascade)
+  guardianId        String
+  guardian          User            @relation("RecoveryApprover", fields: [guardianId], references: [id])
+  createdAt         DateTime        @default(now())
+
+  @@unique([recoveryRequestId, guardianId])
 }

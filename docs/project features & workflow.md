@@ -115,7 +115,7 @@ Access to physical zones and custody of sensitive assets is gated by four strict
 ### 3.3 Auditor Dashboard (MoD / DGQA Compliance) — *The Hackathon Showcase*
 * **Live Immutable Audit Stream**:
   * Auto-updating feed of every event: `DID_REGISTERED`, `ACCESS_GRANTED`, `ACCESS_DENIED`, `ASSET_MINTED`, `CUSTODY_TRANSFERRED`, `EMERGENCY_LOCKDOWN`.
-  * Each log displays: Timestamp, Actor Address, Target Address, Zone/Asset ID, Block Number, and clickable PolygonScan / Explorer TxHash link.
+  * Each log displays: Timestamp, Actor Address, Target Address, Zone/Asset ID, Block Number, and clickable Etherscan (Sepolia) / Explorer TxHash link.
 * **Advanced Filter & Export**:
   * Filter by Date Range, SBU, Employee ID, Event Type.
   * Export certified, cryptographically signed audit reports for defence compliance inspections.
@@ -535,7 +535,7 @@ sequenceDiagram
 +-----------------------------------------------------------------------------------------------+
 | PHASE 1: SIH DEMO (Now)          | PHASE 2: BEL PILOT (On-Prem)     | PHASE 3: NATIONAL (Prod)|
 +----------------------------------+----------------------------------+-------------------------+
-| - Network: Polygon Amoy Testnet  | - Network: Hyperledger Besu      | - Network: NBF Vishvasya|
+| - Network: Ethereum Sepolia Test | - Network: Hyperledger Besu      | - Network: NBF Vishvasya|
 | - Fast, zero cost for demo       | - Permissioned, private BEL nodes|   Stack (NIC Data Ctrs) |
 | - Cloud IPFS pinning (Pinata)    | - On-prem private IPFS cluster   | - Governed national node|
 | - SQLite / PostgreSQL            | - Production Enterprise Postgres | - Mission-critical infra|
@@ -543,7 +543,7 @@ sequenceDiagram
 ```
 
 Because our smart contracts are written in standard EVM-compliant Solidity:
-* **The exact same contract bytecode** runs on Polygon Amoy, on a local Hyperledger Besu network, or on the National Blockchain Framework.
+* **The exact same contract bytecode** runs on Ethereum Sepolia, on a local Hyperledger Besu network, or on the National Blockchain Framework.
 * Migrating from demo to production requires **only changing the RPC endpoint in `.env`**. Zero lines of smart contract or frontend code need to change.
 
 ### 7.3 High-Throughput Batching & Event Indexing
@@ -559,7 +559,7 @@ Because our smart contracts are written in standard EVM-compliant Solidity:
   * `contracts/AccessControl.sol`
   * `contracts/AssetNFT.sol`
   * `contracts/AuditLog.sol`
-  * `scripts/deploy.js` & Hardhat configuration for local node + Polygon Amoy testnet.
+  * `scripts/deploy.js` & Hardhat configuration for local node + Ethereum Sepolia testnet.
   * Comprehensive test suite verifying access rules, soulbound restrictions, and tamper resistance.
 * **`backend/`**:
   * Modular Express API: `routes/`, `controllers/`, `services/` (Blockchain relayer, IPFS service, Encryption service, PACS adapter).

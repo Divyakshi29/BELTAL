@@ -5,5 +5,6 @@ import userController from '../controllers/user.controller.js';
 const router = express.Router();
 
 router.get('/me', authenticate, userController.getMe);
+router.get('/transfer-recipients', authenticate, userController.listTransferRecipients);
 
 export default router;

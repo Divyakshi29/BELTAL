@@ -1,0 +1,476 @@
+{
+  "contractName": "AccessControl",
+  "address": "0x1538D96577bae82394813Bc49e9a8D046B2d2a65",
+  "abi": [
+    {
+      "type": "constructor",
+      "stateMutability": "undefined",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address",
+          "name": "_admin"
+        },
+        {
+          "type": "address",
+          "name": "_auditLog"
+        },
+        {
+          "type": "address",
+          "name": "_identityRegistry"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "EmergencyLockdownToggled",
+      "inputs": [
+        {
+          "type": "bytes32",
+          "name": "zoneId",
+          "indexed": true
+        },
+        {
+          "type": "bool",
+          "name": "isLockedDown",
+          "indexed": false
+        },
+        {
+          "type": "address",
+          "name": "actor",
+          "indexed": true
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "RoleGranted",
+      "inputs": [
+        {
+          "type": "bytes32",
+          "name": "role",
+          "indexed": true
+        },
+        {
+          "type": "address",
+          "name": "account",
+          "indexed": true
+        },
+        {
+          "type": "address",
+          "name": "sender",
+          "indexed": true
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "RoleRevoked",
+      "inputs": [
+        {
+          "type": "bytes32",
+          "name": "role",
+          "indexed": true
+        },
+        {
+          "type": "address",
+          "name": "account",
+          "indexed": true
+        },
+        {
+          "type": "address",
+          "name": "sender",
+          "indexed": true
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "TemporaryPassGranted",
+      "inputs": [
+        {
+          "type": "address",
+          "name": "user",
+          "indexed": true
+        },
+        {
+          "type": "bytes32",
+          "name": "zoneId",
+          "indexed": true
+        },
+        {
+          "type": "uint256",
+          "name": "validUntil",
+          "indexed": false
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "ZoneConfigured",
+      "inputs": [
+        {
+          "type": "bytes32",
+          "name": "zoneId",
+          "indexed": true
+        },
+        {
+          "type": "uint8",
+          "name": "requiredClearance",
+          "indexed": false
+        },
+        {
+          "type": "bytes32",
+          "name": "allowedSBU",
+          "indexed": false
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "ROLE_AUDITOR",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "bytes32",
+          "name": ""
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "ROLE_EMPLOYEE",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "bytes32",
+          "name": ""
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "ROLE_SBU_MANAGER",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "bytes32",
+          "name": ""
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "ROLE_SUPER_ADMIN",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "bytes32",
+          "name": ""
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "ROLE_SYSTEM_CONNECTOR",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "bytes32",
+          "name": ""
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "admin",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "address",
+          "name": ""
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "auditLog",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "address",
+          "name": ""
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "canAccessZone",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address",
+          "name": "user"
+        },
+        {
+          "type": "bytes32",
+          "name": "zoneId"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "bool",
+          "name": "allowed"
+        },
+        {
+          "type": "string",
+          "name": "reason"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "createZone",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "bytes32",
+          "name": "zoneId"
+        },
+        {
+          "type": "uint8",
+          "name": "clearance"
+        },
+        {
+          "type": "bytes32",
+          "name": "allowedSBU"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "grantRole",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "bytes32",
+          "name": "role"
+        },
+        {
+          "type": "address",
+          "name": "account"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "grantTemporaryPass",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address",
+          "name": "user"
+        },
+        {
+          "type": "bytes32",
+          "name": "zoneId"
+        },
+        {
+          "type": "uint256",
+          "name": "durationInSeconds"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "hasRole",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "bytes32",
+          "name": "role"
+        },
+        {
+          "type": "address",
+          "name": "account"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "bool",
+          "name": ""
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "identityRegistry",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "address",
+          "name": ""
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "revokeRole",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "bytes32",
+          "name": "role"
+        },
+        {
+          "type": "address",
+          "name": "account"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "setAuditLog",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address",
+          "name": "_auditLog"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "setIdentityRegistry",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address",
+          "name": "_identityRegistry"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "tempPassExpiry",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address",
+          "name": ""
+        },
+        {
+          "type": "bytes32",
+          "name": ""
+        }
+      ],
+      "outputs": [
+        {
+          "type": "uint256",
+          "name": ""
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "toggleEmergencyLockdown",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "bytes32",
+          "name": "zoneId"
+        },
+        {
+          "type": "bool",
+          "name": "status"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "zones",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "bytes32",
+          "name": ""
+        }
+      ],
+      "outputs": [
+        {
+          "type": "bytes32",
+          "name": "zoneId"
+        },
+        {
+          "type": "uint8",
+          "name": "requiredClearance"
+        },
+        {
+          "type": "bytes32",
+          "name": "allowedSBU"
+        },
+        {
+          "type": "bool",
+          "name": "isLockedDown"
+        },
+        {
+          "type": "bool",
+          "name": "exists"
+        }
+      ]
+    }
+  ],
+  "network": "sepolia",
+  "chainId": 11155111
+}

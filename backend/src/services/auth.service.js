@@ -6,7 +6,56 @@ import prisma from '../config/db.js';
 import nonceService from './nonce.service.js';
 import ApiError from '../utils/ApiError.js';
 
+/**
+ * Session for a registered identity. The role/clearance/SBU claims always come
+ * from the DB row — nothing the client sends can influence them.
+ */
+function buildSession(userRecord) {
+  const user = {
+    id: userRecord.id,
+    walletAddress: userRecord.walletAddress,
+    displayName: userRecord.displayName,
+    externalId: userRecord.externalId,
+    did: userRecord.did,
+    role: userRecord.role,
+    clearanceLevel: userRecord.clearanceLevel,
+    sbu: userRecord.sbu,
+    isRegistered: true,
+  };
+
+  const token = jwt.sign(
+    {
+      sub: user.id,
+      walletAddress: user.walletAddress,
+      displayName: user.displayName,
+      did: user.did,
+      role: user.role,
+      clearanceLevel: user.clearanceLevel,
+      sbu: user.sbu,
+      isRegistered: true,
+    },
+    config.jwtSecret,
+    { expiresIn: config.jwtExpiresIn }
+  );
+
+  return { token, user };
+}
+
+/**
+ * Limited session for a wallet with no identity yet: no role or clearance, and
+ * `authenticate` rejects it everywhere except the registration endpoints. It
+ * deliberately has no `sub`, so nothing can mistake it for a User id.
+ */
+function buildLimitedSession(walletAddress) {
+  const user = { walletAddress, isRegistered: false };
+  const token = jwt.sign({ walletAddress, isRegistered: false }, config.jwtSecret, {
+    expiresIn: config.jwtExpiresIn,
+  });
+  return { token, user };
+}
+
 export const authService = {
+  buildSession,
   /**
    * Request a single-use cryptographic sign-in challenge nonce
    * @param {string} walletAddress
@@ -68,16 +117,11 @@ export const authService = {
     // Immediately consume nonce to prevent replay attacks
     nonceService.consumeNonce(checksumAddress);
 
-    // Resolve user profile from DB (or generate default authenticated session if pre-onboarded)
-    let userRecord = null;
-    if (prisma) {
-      try {
-        userRecord = await prisma.user.findUnique({
-          where: { walletAddress: checksumAddress },
-        });
-      } catch (dbErr) {
-        logger.warn(`Database query skipped or unavailable: ${dbErr.message}`);
-      }
+    if (!prisma) throw new ApiError(503, 'Database unavailable');
+    const userRecord = await prisma.user.findUnique({ where: { walletAddress: checksumAddress } });
+
+    if (userRecord?.revokedAt) {
+      throw new ApiError(403, 'This identity has been revoked. Contact your security administrator.');
     }
 
     // SYSTEM_CONNECTOR identities are machine-only (PACS/HRMS ingest via a
@@ -87,48 +131,71 @@ export const authService = {
       throw new ApiError(403, 'System-connector identities cannot authenticate via wallet sign-in');
     }
 
-    const user = userRecord
-      ? {
-          id: userRecord.id,
-          walletAddress: userRecord.walletAddress,
-          displayName: userRecord.displayName,
-          externalId: userRecord.externalId,
-          role: userRecord.role,
-          clearanceLevel: userRecord.clearanceLevel,
-          sbu: userRecord.sbu,
-          isRegistered: true,
-        }
-      : {
-          id: null,
-          walletAddress: checksumAddress,
-          displayName: `Personnel (${checksumAddress.slice(0, 6)}...${checksumAddress.slice(-4)})`,
-          externalId: null,
-          role: 'USER',
-          clearanceLevel: 1,
-          sbu: null,
-          isRegistered: false,
-        };
+    // An unknown wallet proves key ownership but has no identity: it gets a
+    // limited session that can only submit/check a registration request.
+    const session = userRecord ? buildSession(userRecord) : buildLimitedSession(checksumAddress);
 
-    // Construct JWT claims
-    const tokenPayload = {
-      sub: user.id || user.walletAddress,
-      walletAddress: user.walletAddress,
-      role: user.role,
-      clearanceLevel: user.clearanceLevel,
-      sbu: user.sbu,
-      isRegistered: user.isRegistered,
-    };
+    logger.info(
+      `Wallet authenticated successfully: ${checksumAddress} (${userRecord ? `Role: ${userRecord.role}` : 'unregistered'})`
+    );
 
-    const token = jwt.sign(tokenPayload, config.jwtSecret, {
-      expiresIn: config.jwtExpiresIn,
-    });
+    return session;
+  },
 
-    logger.info(`Wallet authenticated successfully: ${checksumAddress} (Role: ${user.role})`);
+  /**
+   * Machine-only counterpart to verifyWalletLogin, for the ROLE_SYSTEM_CONNECTOR
+   * custodial identity (issue #74). Uses the same nonce + ECDSA
+   * proof-of-key-possession flow (request a nonce via POST /auth/nonce same
+   * as any wallet), but is a distinct code path from the human sign-in above
+   * — that path explicitly rejects SYSTEM_CONNECTOR identities so machine
+   * credentials never share a route/rate-limit/audit trail with human
+   * sign-in. Only succeeds for a wallet already provisioned with the
+   * SYSTEM_CONNECTOR role (see POST /api/admin/identities).
+   */
+  async verifySystemConnectorLogin({ walletAddress, signature }) {
+    let checksumAddress;
+    try {
+      checksumAddress = ethers.getAddress(walletAddress);
+    } catch {
+      throw new ApiError(400, 'Invalid Ethereum wallet address format');
+    }
 
-    return {
-      token,
-      user,
-    };
+    const storedChallenge = nonceService.getStoredNonce(checksumAddress);
+    if (!storedChallenge) {
+      throw new ApiError(
+        401,
+        'No active authentication challenge found for this address or the challenge has expired. Please request a new nonce.'
+      );
+    }
+
+    let recoveredAddress;
+    try {
+      recoveredAddress = ethers.verifyMessage(storedChallenge.message, signature);
+    } catch (err) {
+      throw new ApiError(401, `Cryptographic signature verification failed: ${err.message}`);
+    }
+
+    if (ethers.getAddress(recoveredAddress) !== checksumAddress) {
+      throw new ApiError(401, 'Signature does not match the provided wallet address.');
+    }
+
+    nonceService.consumeNonce(checksumAddress);
+
+    if (!prisma) throw new ApiError(503, 'Database unavailable');
+
+    const userRecord = await prisma.user.findUnique({ where: { walletAddress: checksumAddress } });
+    if (!userRecord || userRecord.role !== 'SYSTEM_CONNECTOR') {
+      throw new ApiError(403, 'This login path is reserved for provisioned SYSTEM_CONNECTOR identities');
+    }
+    if (userRecord.revokedAt) {
+      throw new ApiError(403, 'This machine identity has been revoked');
+    }
+
+    const session = buildSession(userRecord);
+
+    logger.info(`System-connector machine identity authenticated: ${checksumAddress}`);
+
+    return session;
   },
 };
 

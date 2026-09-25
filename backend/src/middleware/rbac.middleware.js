@@ -8,8 +8,10 @@ import ApiError from '../utils/ApiError.js';
 export function requireRole(...allowedRoles) {
   return (req, res, next) => {
     if (!req.user) return next(new ApiError(401, 'Authentication required'));
-    if (!allowedRoles.includes(req.user.role)) {
-      return next(new ApiError(403, `Requires one of roles: ${allowedRoles.join(', ')}`));
+    const normalizedRoles = allowedRoles.flat().map((role) => String(role).toUpperCase());
+    const userRole = String(req.user.role ?? '').toUpperCase();
+    if (!normalizedRoles.includes(userRole)) {
+      return next(new ApiError(403, `Requires one of roles: ${normalizedRoles.join(', ')}`));
     }
     return next();
   };

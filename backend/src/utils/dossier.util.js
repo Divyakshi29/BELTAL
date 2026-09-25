@@ -9,6 +9,18 @@ function getKey() {
 }
 
 /**
+ * The DID written to IdentityRegistry and stored on the User row. Derived from
+ * the employee code so it is stable and human-traceable, falling back to the
+ * address when an identity has no external code. It lives here, in one place,
+ * because the same string has to reach the contract, Postgres and the demo
+ * seed — and the migration that backfilled `User.did` reproduces this exact
+ * rule in SQL.
+ */
+export function buildDid({ externalId, walletAddress }) {
+  return `did:beltal:${externalId || walletAddress.slice(2, 10)}`;
+}
+
+/**
  * identityHash = keccak256(externalId, fullName, sbu, salt), computed once at
  * registration (issue #44) and persisted alongside the salt so an auditor can
  * independently recompute and verify it later without needing the plaintext
@@ -48,4 +60,4 @@ export function decryptDossier(encrypted) {
   return JSON.parse(plaintext.toString('utf8'));
 }
 
-export default { computeIdentityHash, encryptDossier, decryptDossier };
+export default { buildDid, computeIdentityHash, encryptDossier, decryptDossier };

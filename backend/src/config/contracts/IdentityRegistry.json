@@ -1,0 +1,389 @@
+{
+  "contractName": "IdentityRegistry",
+  "address": "0x4924C0891d7Bc38fC54EC8B71e641F97E0D4138C",
+  "abi": [
+    {
+      "type": "constructor",
+      "stateMutability": "undefined",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address",
+          "name": "_admin"
+        },
+        {
+          "type": "address",
+          "name": "_auditLog"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "ClearanceUpdated",
+      "inputs": [
+        {
+          "type": "address",
+          "name": "user",
+          "indexed": true
+        },
+        {
+          "type": "uint8",
+          "name": "oldClearance",
+          "indexed": false
+        },
+        {
+          "type": "uint8",
+          "name": "newClearance",
+          "indexed": false
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "IdentityCreated",
+      "inputs": [
+        {
+          "type": "address",
+          "name": "user",
+          "indexed": true
+        },
+        {
+          "type": "string",
+          "name": "did",
+          "indexed": false
+        },
+        {
+          "type": "bytes32",
+          "name": "identityHash",
+          "indexed": true
+        },
+        {
+          "type": "uint8",
+          "name": "clearanceLevel",
+          "indexed": false
+        },
+        {
+          "type": "bytes32",
+          "name": "sbuCode",
+          "indexed": true
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "IdentityRevoked",
+      "inputs": [
+        {
+          "type": "address",
+          "name": "user",
+          "indexed": true
+        },
+        {
+          "type": "string",
+          "name": "reason",
+          "indexed": false
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "admin",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "address",
+          "name": ""
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "auditLog",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "address",
+          "name": ""
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "authorizedCallers",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address",
+          "name": ""
+        }
+      ],
+      "outputs": [
+        {
+          "type": "bool",
+          "name": ""
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "batchRegisterIdentities",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address[]",
+          "name": "users"
+        },
+        {
+          "type": "string[]",
+          "name": "dids"
+        },
+        {
+          "type": "bytes32[]",
+          "name": "hashes"
+        },
+        {
+          "type": "uint8[]",
+          "name": "clearances"
+        },
+        {
+          "type": "bytes32[]",
+          "name": "sbus"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "didToAddress",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "string",
+          "name": ""
+        }
+      ],
+      "outputs": [
+        {
+          "type": "address",
+          "name": ""
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "getIdentity",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address",
+          "name": "user"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "tuple",
+          "name": "",
+          "components": [
+            {
+              "type": "bytes32",
+              "name": "identityHash"
+            },
+            {
+              "type": "bytes32",
+              "name": "sbuCode"
+            },
+            {
+              "type": "uint64",
+              "name": "registeredAt"
+            },
+            {
+              "type": "uint64",
+              "name": "updatedAt"
+            },
+            {
+              "type": "uint8",
+              "name": "clearanceLevel"
+            },
+            {
+              "type": "bool",
+              "name": "isActive"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "identities",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address",
+          "name": ""
+        }
+      ],
+      "outputs": [
+        {
+          "type": "bytes32",
+          "name": "identityHash"
+        },
+        {
+          "type": "bytes32",
+          "name": "sbuCode"
+        },
+        {
+          "type": "uint64",
+          "name": "registeredAt"
+        },
+        {
+          "type": "uint64",
+          "name": "updatedAt"
+        },
+        {
+          "type": "uint8",
+          "name": "clearanceLevel"
+        },
+        {
+          "type": "bool",
+          "name": "isActive"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "registerIdentity",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address",
+          "name": "user"
+        },
+        {
+          "type": "string",
+          "name": "did"
+        },
+        {
+          "type": "bytes32",
+          "name": "hash"
+        },
+        {
+          "type": "uint8",
+          "name": "clearance"
+        },
+        {
+          "type": "bytes32",
+          "name": "sbu"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "revokeIdentity",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address",
+          "name": "user"
+        },
+        {
+          "type": "string",
+          "name": "reason"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "setAuditLog",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address",
+          "name": "_auditLog"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "setAuthorizedCaller",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address",
+          "name": "caller"
+        },
+        {
+          "type": "bool",
+          "name": "status"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "updateClearance",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address",
+          "name": "user"
+        },
+        {
+          "type": "uint8",
+          "name": "newClearance"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "verifyIdentity",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address",
+          "name": "user"
+        },
+        {
+          "type": "bytes32",
+          "name": "testHash"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "bool",
+          "name": ""
+        }
+      ]
+    }
+  ],
+  "network": "sepolia",
+  "chainId": 11155111
+}

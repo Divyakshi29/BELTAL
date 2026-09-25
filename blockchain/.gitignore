@@ -1,0 +1,23 @@
+# Hardhat artifacts and cache
+artifacts/
+cache/
+typechain-types/
+coverage/
+coverage.json
+.hardhat/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Node dependencies
+node_modules/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*

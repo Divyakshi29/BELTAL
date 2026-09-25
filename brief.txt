@@ -1,0 +1,253 @@
+BELTAL — PROJECT BRIEF
+Blockchain-Enabled Trusted Access & Asset Ledger
+Smart India Hackathon 2026 · Problem Statement 26125 · Bharat Electronics Limited
+
+
+================================================================================
+1. THE PROBLEM
+================================================================================
+
+BEL runs nine manufacturing units and several Strategic Business Units working on
+classified defence electronics — military radars, electronic warfare, military
+communications, cyber systems. Three things have to be tracked continuously:
+
+  - who someone is and what security clearance they hold,
+  - which physical labs and zones they are allowed to walk into,
+  - who is currently holding each piece of expensive, classified equipment.
+
+Today all three live in ordinary centralized databases: Active Directory for
+identity, a badge-reader system for door access, and departmental spreadsheets
+and paper gate passes for equipment custody.
+
+The weakness is not that these systems are missing features. It is that every one
+of them can be edited quietly by anyone with database privileges, and the edit
+leaves no trace. A privileged insider can raise their own clearance level, grant
+themselves access to a crypto lab, or rewrite who signed out a spectrum analyser
+— and the record will look perfectly normal afterwards. When auditors from the
+MoD, DGQA or CERT-In come to inspect, they are shown rows from exactly the
+database that could have been altered before they arrived. They have no
+independent way to tell a genuine record from a doctored one.
+
+So the real problem is not access control. It is that there is no way to prove
+that the access-control records are telling the truth.
+
+
+================================================================================
+2. THE APPROACH
+================================================================================
+
+BELTAL does not replace BEL's HR system, badge readers or ERP. It adds a
+cryptographic layer underneath them that makes every identity change, access
+decision and custody transfer permanently and independently verifiable.
+
+The core design rule is:
+
+    THE BLOCKCHAIN IS THE SOURCE OF TRUTH.
+    THE DATABASE IS A DISPOSABLE CACHE.
+
+Every write — registering a person, granting a role, minting an asset,
+transferring custody, locking down a zone — goes to a smart contract first. The
+contracts emit events; a background indexer copies those events into PostgreSQL
+purely so dashboards load quickly. Nothing is ever written to the database as a
+primary record.
+
+That inversion is what defeats the insider. Editing the database no longer
+changes reality; it only makes the cache disagree with the chain. And BELTAL
+ships a verifier whose entire job is to find that disagreement and report it.
+
+Personal data never goes on-chain. Only a DID and a salted cryptographic hash are
+recorded publicly. Full personnel dossiers and asset specifications are encrypted
+with AES-256-GCM before they leave the server and pinned to IPFS; only the
+content address is stored on-chain.
+
+
+================================================================================
+3. HOW IT WORKS
+================================================================================
+
+FOUR SMART CONTRACTS (Solidity, deployed to Ethereum Sepolia)
+
+  IdentityRegistry  DIDs, identity hashes, clearance levels, revocation, and
+                    batch registration for bulk HR onboarding.
+  AccessControl     Role grants, facility zones, temporary cross-SBU passes,
+                    emergency lockdown, and the on-chain access decision.
+  AssetNFT          Soulbound custody tokens. Deliberately NOT an ERC-721:
+                    ordinary transfers revert. Custody can only move through
+                    the controlled flow, and the contract itself refuses to
+                    hand a classified asset to someone whose clearance is too
+                    low or whose identity is not active.
+  AuditLog          Append-only event stream written to by the other three.
+
+BACKEND (Node.js / Express, PostgreSQL via Prisma, ethers.js)
+
+  Submits every write to the contracts, enforces roles on every route, indexes
+  chain events into the read-cache, encrypts and pins documents to IPFS, and
+  runs the anti-tamper verifier.
+
+FRONTEND (React + Vite + Tailwind)
+
+  Four role-specific portals plus the verification and simulator tools. Sign-in
+  is by wallet signature — no passwords.
+
+
+THE FLOW, END TO END
+
+  1. A person connects their wallet. The server issues a one-time nonce, the
+     wallet signs it, the server verifies the signature and issues a JWT. A
+     wallet with no identity gets a limited session that can do nothing except
+     submit a registration request.
+
+  2. An admin approves the request, choosing a role and clearance level. That
+     approval mints a DID, encrypts the dossier to IPFS, writes the DID and
+     identity hash on-chain, and grants the role in the contract.
+
+  3. Equipment is minted as a soulbound token naming its custodian, its
+     classification tier and its SBU.
+
+  4. Custody moves only through request → approve → execute. The backend checks
+     the recipient's clearance and SBU, the contract checks them again, and two
+     separate people are always required: the requester cannot approve their own
+     request, and an approver cannot be the recipient.
+
+  5. A badge tap at a door is submitted by a machine identity. The decision is
+     computed on-chain from clearance, SBU, any active cross-SBU pass and the
+     zone's lockdown state — then logged. An admin can lock a zone instantly and
+     it denies everyone.
+
+  6. Every one of those events lands in the on-chain audit log and is indexed for
+     fast querying.
+
+
+THE PART THAT ANSWERS THE PROBLEM STATEMENT
+
+  An auditor opens the verification page and pastes in an employee ID, an asset
+  ID or a transaction hash. The system then:
+
+    - fetches the encrypted dossier from IPFS and decrypts it,
+    - recomputes the identity hash from the original fields,
+    - reads the hash the blockchain actually holds,
+    - reads the asset's custodian and CID from the chain,
+    - and compares all of it against what the database claims.
+
+  If they match, the record is provably genuine. If they do not, the response is
+  INTEGRITY_COMPROMISED — the database was edited behind the application's back.
+
+  This is the heart of the submission. The auditor is not being asked to trust
+  BELTAL's word. They are being shown a mathematical comparison against a ledger
+  nobody at BEL can rewrite.
+
+
+================================================================================
+4. ROLES
+================================================================================
+
+  ADMIN              Approves registrations, assigns roles and clearance, mints
+                     assets, manages zones, triggers emergency lockdown, full
+                     audit access.
+  MANAGER            Sees and acts within their own SBU: team roster, team
+                     assets, transfer approvals, cross-SBU passes.
+  AUDITOR            Read-only across everything, plus the verification tools.
+                     Cannot change a single record — by design.
+  USER               Sees their own identity and the equipment in their custody,
+                     and can request a transfer.
+  SYSTEM_CONNECTOR   Machine-only identity for automated badge-reader and HR
+                     feeds. Rejected on human sign-in.
+
+Roles always come from the server, never from the client. The role picker on the
+login screen is cosmetic — users are routed to the portal for their real role.
+Clearance levels run 1 (Restricted) to 4 (Top Secret) and gate both door access
+and asset custody.
+
+
+================================================================================
+5. WHAT IS WORKING
+================================================================================
+
+Smart contracts    All four implemented and deployed to Sepolia, with a test
+                   suite covering role gating, clearance and SBU rules, the
+                   soulbound property and hash verification.
+
+Backend            Wallet sign-in, self-registration and approval, identity and
+                   role management, asset minting, the full transfer flow,
+                   cross-SBU passes, PACS zone access and lockdown, the event
+                   indexer, the audit API and the anti-tamper verifier.
+                   Also: bulk CSV onboarding, guardian account recovery, an
+                   IPFS fetch-and-decrypt endpoint, and the AI audit assistant.
+
+Frontend           Landing and login, self-registration, all four role
+                   dashboards, identity ledger, role assignment, asset minting
+                   and registry, transfer approvals, team views, the audit trail
+                   explorer, the verification page with its Anti-Tamper Lab, the
+                   PACS badge-tap simulator, a shared asset-detail view with an
+                   ownership-history timeline, and the AI assistant panel.
+                   Responsive down to phone width.
+
+Demo data          One command seeds identities for every role across two SBUs,
+                   zones, assets, a pending transfer, a cross-SBU pass and a
+                   pending registration. Idempotent, and runnable fully offline
+                   with --offchain for a laptop demo with no testnet ETH.
+
+Three features worth calling out:
+
+  BULK ONBOARDING — an admin uploads an HR CSV export. Every row is validated
+  and the generated DIDs previewed BEFORE any transaction is sent; only if the
+  whole file is clean are identities registered on-chain in batches of up to 250
+  per transaction. A bad file is never half-imported.
+
+  GUARDIAN RECOVERY — if someone loses the wallet their identity is anchored to,
+  guardians assigned to them vouch for a replacement. Once enough have approved
+  — and never on the word of whoever raised the request — an admin re-links the
+  identity: the old wallet is revoked on-chain and the same DID and identity hash
+  are re-anchored to the new one. The audit trail shows one person changing keys,
+  not a new employee appearing from nowhere.
+
+  AI AUDIT ASSISTANT — auditors can ask plain-English questions ("show me every
+  denied badge tap last week"). The assistant can only reach the audit trail
+  through the same role-gated service the REST API uses, so it can never surface
+  a record the person asking could not already read. Crucially, the answer is
+  displayed alongside the actual records it was built from — so the summary can
+  be checked, not just trusted. Optional: disabled unless an API key is set.
+
+
+================================================================================
+6. KNOWN LIMITATIONS
+================================================================================
+
+Stated plainly, because a security project that hides its gaps is not a security
+project.
+
+  - The `signature` argument on custody transfers is stored on-chain as an
+    opaque memo but is not cryptographically verified by the contract yet.
+    Assigned to the blockchain sub-team.
+
+  - SBU confinement is enforced in AccessControl (door access) and in the
+    backend transfer checks, but not inside AssetNFT's custody path itself.
+
+  - JWTs live one hour and are not re-checked against the database, so a role
+    change or revocation takes effect at most an hour later.
+
+  - Bulk import and guardian recovery are complete and usable through the API
+    but do not yet have dedicated admin screens.
+
+  - A few secondary frontend routes are still "Coming Soon" placeholders (audit
+    vault, DID issuance, sovereign nodes, read-only ledgers).
+
+  - Running on Sepolia testnet for the demo, not a production permissioned
+    network.
+
+
+================================================================================
+7. IN ONE PARAGRAPH
+================================================================================
+
+BEL's identity, access and asset records are trustworthy only as far as the
+database administrator is trustworthy, and an audit cannot tell the difference.
+BELTAL moves the authoritative copy of those records onto smart contracts, keeps
+PostgreSQL only as a fast cache, encrypts all personal and classified detail to
+IPFS so nothing sensitive is ever public, and gives auditors a tool that
+recomputes each record from the chain and reports whether the database still
+matches. Roles, clearance tiers and SBU boundaries are enforced in the contracts
+as well as the API, custody tokens are soulbound so equipment cannot be quietly
+reassigned, and no single person can both request and approve a transfer of
+classified hardware. The result is a system where a doctored record is not just
+against policy — it is detectable.

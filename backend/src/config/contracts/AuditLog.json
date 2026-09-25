@@ -1,0 +1,216 @@
+{
+  "contractName": "AuditLog",
+  "address": "0xBc1a55d597845Af677ef65C41DE39591477B155E",
+  "abi": [
+    {
+      "type": "constructor",
+      "stateMutability": "undefined",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address",
+          "name": "_admin"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "AuthorizedCallerUpdated",
+      "inputs": [
+        {
+          "type": "address",
+          "name": "caller",
+          "indexed": true
+        },
+        {
+          "type": "bool",
+          "name": "status",
+          "indexed": false
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "SecurityAuditLog",
+      "inputs": [
+        {
+          "type": "bytes32",
+          "name": "eventType",
+          "indexed": true
+        },
+        {
+          "type": "address",
+          "name": "actor",
+          "indexed": true
+        },
+        {
+          "type": "address",
+          "name": "target",
+          "indexed": true
+        },
+        {
+          "type": "bytes32",
+          "name": "entityId",
+          "indexed": false
+        },
+        {
+          "type": "uint256",
+          "name": "timestamp",
+          "indexed": false
+        },
+        {
+          "type": "string",
+          "name": "details",
+          "indexed": false
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "admin",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "address",
+          "name": ""
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "getLog",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "uint256",
+          "name": "index"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "tuple",
+          "name": "",
+          "components": [
+            {
+              "type": "bytes32",
+              "name": "eventType"
+            },
+            {
+              "type": "address",
+              "name": "actor"
+            },
+            {
+              "type": "address",
+              "name": "target"
+            },
+            {
+              "type": "bytes32",
+              "name": "entityId"
+            },
+            {
+              "type": "uint256",
+              "name": "timestamp"
+            },
+            {
+              "type": "string",
+              "name": "details"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "getLogCount",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "uint256",
+          "name": ""
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "isAuthorizedCaller",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address",
+          "name": ""
+        }
+      ],
+      "outputs": [
+        {
+          "type": "bool",
+          "name": ""
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "logEvent",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "bytes32",
+          "name": "eventType"
+        },
+        {
+          "type": "address",
+          "name": "actor"
+        },
+        {
+          "type": "address",
+          "name": "target"
+        },
+        {
+          "type": "bytes32",
+          "name": "entityId"
+        },
+        {
+          "type": "string",
+          "name": "details"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "uint256",
+          "name": ""
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "setAuthorizedCaller",
+      "constant": false,
+      "payable": false,
+      "inputs": [
+        {
+          "type": "address",
+          "name": "caller"
+        },
+        {
+          "type": "bool",
+          "name": "status"
+        }
+      ],
+      "outputs": []
+    }
+  ],
+  "network": "sepolia",
+  "chainId": 11155111
+}
